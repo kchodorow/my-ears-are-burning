@@ -30,18 +30,19 @@ public class AccessTokenServlet extends HttpServlet {
   static final String CODE_KEY = "code";
 
   static final String REQUEST_URL = "https://github.com/login/oauth/access_token";
-  static final String USER_URL = "https://api.github.com/user";
+  static final String USER_URL = "https://api.github.com/notifications";
 
   private static final Logger log = Logger.getLogger(AccessTokenServlet.class.getName());
 
-  private final SecretDatastore datastore = new SecretDatastore();
+  private final SecretDatastore secretDatastore = new SecretDatastore();
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
     Map<String, Object> parameterMap = request.getParameterMap();
     if (parameterMap.containsKey("code")) {
-      requestToken(request);
+      String accessToken = requestToken(request);
+      response.getWriter().write(getUserInfo(accessToken));
     } else if (parameterMap.containsKey("access_token")) {
       saveToken(request, parameterMap);
     } else {
@@ -53,7 +54,7 @@ public class AccessTokenServlet extends HttpServlet {
     log.warning("In save token: " + parameterMap);
   }
 
-  private void requestToken(HttpServletRequest request)
+  private String requestToken(HttpServletRequest request)
     throws IOException {
     // TODO: check state.
     String code = request.getParameter("code");
@@ -80,23 +81,21 @@ public class AccessTokenServlet extends HttpServlet {
       }
     }
     EntityUtils.consumeQuietly(postEntity);
-
-    getUserInfo(accessToken);
+    return accessToken;
   }
 
-  private void getUserInfo(String accessToken) throws IOException {
+  private String getUserInfo(String accessToken) throws IOException {
     HttpClient httpClient = new DefaultHttpClient();
-    HttpGet getRequest = new HttpGet(USER_URL);
+    HttpGet getRequest = new HttpGet(USER_URL + "?since=2017-01-01T22:01:45Z");
     getRequest.addHeader("Authorization", "token " + accessToken);
     HttpResponse response = httpClient.execute(getRequest);
     HttpEntity entity = response.getEntity();
     String body = EntityUtils.toString(entity, "UTF-8");
-    System.out.println("body: " + body);
-    log.warning("Got: " + body);
     EntityUtils.consumeQuietly(entity);
+    return body;
   }
 
   private String getClientSecretValue() {
-    return datastore.get(SecretDatastore.GITHUB_ID);
+    return secretDatastore.get(SecretDatastore.GITHUB_ID);
   }
 }

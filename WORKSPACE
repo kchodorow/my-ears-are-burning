@@ -26,6 +26,10 @@ maven_jar(
     name = "commons_codec",
     artifact = "commons-codec:commons-codec:jar:1.10",
 )
+maven_jar(
+    name = "appengine_testing",
+    artifact = "com.google.appengine:appengine-testing:1.9.48",
+)
 
 
 # Testing.

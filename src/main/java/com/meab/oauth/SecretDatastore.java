@@ -18,7 +18,8 @@ import java.util.logging.Logger;
 public class SecretDatastore extends HttpServlet {
 
   static final String GITHUB_ID = "github";
-  static final String STATE_MACHINE_ID = "state machine";
+  private static final String STATE_MACHINE_ID = "state machine";
+  static final String[] keys = {GITHUB_ID, STATE_MACHINE_ID};
 
   private static final String ENTITY_TYPE = "secret";
 
@@ -26,17 +27,49 @@ public class SecretDatastore extends HttpServlet {
 
   private final DatastoreService datastore;
 
-  public SecretDatastore() {
+  SecretDatastore() {
     datastore = DatastoreServiceFactory.getDatastoreService();
   }
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
-    findOrInsert(GITHUB_ID, null);
-    findOrInsert(STATE_MACHINE_ID, null);
+    String uri = request.getRequestURI();
+    int qMark = uri.indexOf("?");
+    if (qMark < 0) {
+      response.getWriter().write("Nothing to do.");
+      return;
+    }
+
+    uri = uri.substring(qMark + 1);
+    String params[] = uri.split("&");
+    String key = getKey(params[0]);
+    String value = getValue(params[1]);
+    findOrInsert(key, value);
 
     response.getWriter().write("Wrote secrets.");
+  }
+
+  private String getKey(String params) {
+    String param[] = params.split("=");
+    if (!param[0].equals("key")) {
+      return null;
+    }
+    for (String key : keys) {
+      String id = param[1];
+      if (key.equals(id)) {
+        return id;
+      }
+    }
+    return null;
+  }
+
+  private String getValue(String params) {
+    String param[] = params.split("=");
+    if (param[0].equals("value")) {
+      return param[1];
+    }
+    return null;
   }
 
   private void findOrInsert(String key, String value) {
