@@ -16,7 +16,7 @@ maven_jar(
 )
 maven_jar(
     name = "guava",
-    artifact = "com.google.guava:guava:jar:21.0",
+    artifact = "com.google.guava:guava:20.0",
 )
 maven_jar(
     name = "commons_logging",
