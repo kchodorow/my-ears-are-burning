@@ -11,10 +11,6 @@
         <servlet-name>token</servlet-name>
         <servlet-class>com.meab.oauth.AccessTokenServlet</servlet-class>
     </servlet>
-    <servlet>
-        <servlet-name>secrets</servlet-name>
-        <servlet-class>com.meab.oauth.SecretDatastore</servlet-class>
-    </servlet>
 
     <servlet-mapping>
         <servlet-name>oauth</servlet-name>
@@ -26,8 +22,4 @@
         <url-pattern>/github</url-pattern>
     </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>secrets</servlet-name>
-        <url-pattern>/secrets</url-pattern>
-    </servlet-mapping>
 </web-app>
