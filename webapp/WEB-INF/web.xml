@@ -11,15 +11,22 @@
         <servlet-name>token</servlet-name>
         <servlet-class>com.meab.oauth.AccessTokenServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>notifications</servlet-name>
+        <servlet-class>com.meab.notifications.NotificationServlet</servlet-class>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>oauth</servlet-name>
         <url-pattern>/login</url-pattern>
     </servlet-mapping>
-
     <servlet-mapping>
         <servlet-name>token</servlet-name>
         <url-pattern>/github</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>notifications</servlet-name>
+        <url-pattern>/notifications</url-pattern>
     </servlet-mapping>
 
 </web-app>

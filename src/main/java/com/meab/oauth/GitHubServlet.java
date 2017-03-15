@@ -2,6 +2,8 @@ package com.meab.oauth;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.common.net.UrlEscapers;
+import com.meab.user.User;
+import com.meab.user.UserDatastore;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -25,25 +27,16 @@ public class GitHubServlet extends HttpServlet {
 
   static final String REDIRECT_URL = "https://github.com/login/oauth/authorize";
 
-  private UserDatastore userDatastore = new UserDatastore();
-
   /**
    * Step 1: Redirect to GitHub.
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
-    Cookie cookies[] = request.getCookies();
-    if (cookies != null) {
-      for (Cookie cookie : cookies) {
-        if (cookie.getName().equals("uuid")) {
-          Entity user = userDatastore.getUser(cookie.getValue());
-          if (user != null) {
-            response.getWriter().write("Logged in: " + user);
-            return;
-          }
-        }
-      }
+    String id = User.getIdFromCookie(request);
+    if (id != null) {
+      response.getWriter().write("Logged in: " + id);
+      return;
     }
 
     String state = UUID.randomUUID().toString();

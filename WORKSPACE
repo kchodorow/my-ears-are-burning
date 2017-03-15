@@ -30,7 +30,38 @@ maven_jar(
     name = "appengine_testing",
     artifact = "com.google.appengine:appengine-testing:1.9.48",
 )
-
+maven_jar(
+    name = "json",
+    artifact = "org.json:json:20160810",
+)
+maven_jar(
+    name = "jsr305",
+    artifact = "com.google.code.findbugs:jsr305:3.0.1",
+)
+new_http_archive(
+    name = "autovalue",
+    url = "http://repo1.maven.org/maven2/com/google/auto/value/auto-value/1.3/auto-value-1.3.jar",
+    build_file_content = """
+java_import(
+    name = "jar",
+    jars = ["auto-value-1.3.jar"],
+    visibility = ["//visibility:public"],
+)
+java_plugin(
+    name = "autovalue-plugin",
+    generates_api = 1,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = [":jar"],
+    visibility = ["//visibility:public"],
+)
+java_library(
+    name = "processor",
+    exported_plugins = [":autovalue-plugin"],
+    exports = [":jar"],
+    visibility = ["//visibility:public"],
+)
+""",
+)
 
 # Testing.
 

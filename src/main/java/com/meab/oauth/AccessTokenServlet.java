@@ -1,16 +1,13 @@
 package com.meab.oauth;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.users.User;
-import com.google.appengine.repackaged.com.google.api.client.util.Strings;
+import com.google.common.base.Strings;
+import com.meab.user.User;
+import com.meab.user.UserDatastore;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -37,7 +34,6 @@ public class AccessTokenServlet extends HttpServlet {
   static final String CODE_KEY = "code";
 
   static final String REQUEST_URL = "https://github.com/login/oauth/access_token";
-  static final String USER_URL = "https://api.github.com/notifications";
 
   private final SecretDatastore secretDatastore = new SecretDatastore();
   private final UserDatastore userDatastore = new UserDatastore();
@@ -48,23 +44,29 @@ public class AccessTokenServlet extends HttpServlet {
   }
 
   @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws IOException {
-    Map<String, Object> parameterMap = request.getParameterMap();
+  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    Map parameterMap = request.getParameterMap();
     if (!parameterMap.containsKey("code")) {
       log.warning("No code received: " + request);
       response.sendRedirect("/");
       return;
     }
-    String accessToken = requestToken(request);
-    response.getWriter().write(getUserInfo(accessToken));
-  }
 
-  private String requestToken(HttpServletRequest request)
-    throws IOException {
     String code = request.getParameter("code");
     String state = request.getParameter("state");
+    String tokenResponse = requestToken(code, state);
+    User user;
+    try {
+      user = getUser(tokenResponse, state);
+    } catch (LoginException e) {
+      throw new IOException(e.getMessage());
+    }
+    user.setCookie(response);
+    response.getWriter().write(user.toString());
+  }
 
+  private String requestToken(String code, String state)
+    throws IOException {
     HttpPost httpPost = new HttpPost(REQUEST_URL);
     List<NameValuePair> params = new ArrayList<>();
     params.add(new BasicNameValuePair(GitHubServlet.CLIENT_ID_KEY, GitHubServlet.CLIENT_ID_VALUE));
@@ -78,30 +80,32 @@ public class AccessTokenServlet extends HttpServlet {
 
     HttpEntity postEntity = postResponse.getEntity();
     String responseContent = EntityUtils.toString(postEntity);
-    log.info("Received: " + responseContent);
+    EntityUtils.consumeQuietly(postEntity);
+    return responseContent;
+  }
+
+  private User getUser(String responseContent, String userId) throws LoginException {
     String tokens[] = responseContent.split("&");
     String accessToken = null;
     for (String token : tokens) {
       if (token.startsWith("access_token=")) {
         accessToken = token.substring("access_token=".length());
-        if (Strings.isNullOrEmpty(state)) {
-          state = UUID.randomUUID().toString();
-        }
-        userDatastore.createUser(accessToken, state);
+        break;
       }
     }
-    EntityUtils.consumeQuietly(postEntity);
-    return accessToken;
-  }
+    if (accessToken == null) {
+      log.warning("No access token returned: " + responseContent);
+      throw new LoginException("Did not receive access token");
+    }
 
-  private String getUserInfo(String accessToken) throws IOException {
-    HttpClient httpClient = new DefaultHttpClient();
-    HttpGet getRequest = new HttpGet(USER_URL + "?since=2017-02-20T22:01:45Z");
-    getRequest.addHeader("Authorization", "token " + accessToken);
-    HttpResponse response = httpClient.execute(getRequest);
-    HttpEntity entity = response.getEntity();
-    String body = EntityUtils.toString(entity, "UTF-8");
-    EntityUtils.consumeQuietly(entity);
-    return body;
+    if (Strings.isNullOrEmpty(userId)) {
+      log.info("state was empty for access token request");
+      userId = UUID.randomUUID().toString();
+    }
+    User user = userDatastore.getUser(userId);
+    if (user == null) {
+      user = userDatastore.createUser(accessToken, userId);
+    }
+    return user;
   }
 }
