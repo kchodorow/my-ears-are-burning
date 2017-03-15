@@ -32,8 +32,11 @@ public class NotificationServlet extends HttpServlet {
     if (user.lastUpdated() == null || user.lastUpdated().before(oneHourAgo)) {
       notificationDatastore.fetchNotifications(user);
     }
-    for (Entity notification : notificationDatastore.getNotifications(id)) {
-      response.getWriter().write("<p>" + notification + "</p>");
+    for (Entity entity : notificationDatastore.getNotifications(id)) {
+      Notification notification = Notification.fromEntity(entity);
+      if (notification != null) {
+        response.getWriter().write(notification.getHtml());
+      }
     }
   }
 

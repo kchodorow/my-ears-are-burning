@@ -40,6 +40,7 @@ public class UserDatastore {
   public void setLastUpdated(User user) {
     Entity entity = user.entity();
     entity.setProperty(DatastoreConstants.User.LAST_UPDATED, new Date(System.currentTimeMillis()));
+    datastore.put(entity);
   }
 
   private Key getKey(String uuid) {
