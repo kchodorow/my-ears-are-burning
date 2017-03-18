@@ -8,9 +8,7 @@ import com.meab.DatastoreConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -43,26 +41,12 @@ import java.util.logging.Logger;
  */
 public class Notification {
   private static final Logger log = Logger.getLogger(Notification.class.getName());
-  private static final SimpleDateFormat GITHUB_DATE_FORMAT = new SimpleDateFormat(
-    "yyyy-MM-dd'T'HH:mm:ss'Z'");
 
-  private final boolean unread;
-  // author, state_change, mention
-  private final String reason;
-  private Date date;
+  // Reasons: author, state_change, mention
   private final JSONObject object;
 
   public Notification(JSONObject jsonObject) {
-    this.unread = jsonObject.getBoolean("unread");
-    this.reason = jsonObject.getString("reason");
     this.object = jsonObject;
-    String updatedAt = jsonObject.getString("updated_at");
-    try {
-      this.date = GITHUB_DATE_FORMAT.parse(updatedAt);
-    } catch (ParseException e) {
-      log.warning("Unparsed date: " + updatedAt + " parsed date: " + e.getMessage());
-      this.date = new Date();
-    }
   }
 
   static Notification fromEntity(Entity entity) {
@@ -85,14 +69,28 @@ public class Notification {
     Key key = KeyFactory.createKey(
       DatastoreConstants.Notifications.DATASTORE, object.getString("id"));
     Entity entity = new Entity(key);
-    entity.setProperty("unread", unread);
-    entity.setProperty("date", date);
+    entity.setProperty("unread", object.getBoolean("unread"));
+    entity.setProperty("reason", object.getString("reason"));
+    entity.setProperty("date", getDate());
     entity.setProperty(DatastoreConstants.Notifications.FULL_TEXT, new Text(object.toString()));
     return entity;
   }
 
   String getHtml() {
-    return "<p><a href=\"" + object.getJSONObject("subject").getString("latest_comment_url")
-      + "\">" + object.getJSONObject("subject").getString("title") + "</a></p>";
+    return "<p>[" + object.getString("reason") + "] <a href=\""
+      + object.getJSONObject("subject").getString("url") + "\">"
+      + object.getJSONObject("subject").getString("title") + "</a></p>";
+  }
+
+  private Date getDate() {
+    String updatedAt = object.getString("updated_at");
+    Date date;
+    try {
+      date = DatastoreConstants.GITHUB_DATE_FORMAT.parse(updatedAt);
+    } catch (ParseException e) {
+      log.warning("Unparsed date: " + updatedAt + " parsed date: " + e.getMessage());
+      date = new Date();
+    }
+    return date;
   }
 }

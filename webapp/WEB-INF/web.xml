@@ -26,7 +26,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>notifications</servlet-name>
-        <url-pattern>/notifications</url-pattern>
+        <url-pattern>/api/notifications</url-pattern>
     </servlet-mapping>
 
 </web-app>

@@ -4,7 +4,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.auto.value.AutoValue;
 import com.meab.DatastoreConstants;
 
-import javax.annotation.Nullable;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,10 +22,9 @@ public abstract class User {
 
   private static Date parseDate(Object property) {
     if (property == null) {
-      return null;
+      return new Date(0);
     }
-    // TODO
-    return new Date();
+    return (Date) property;
   }
 
   public static String getIdFromCookie(HttpServletRequest request) {
@@ -57,6 +55,9 @@ public abstract class User {
   public abstract Entity entity();
   public abstract String id();
   public abstract String accessToken();
-  @Nullable
   public abstract Date lastUpdated();
+
+  public String getLastUpdated() {
+    return DatastoreConstants.GITHUB_DATE_FORMAT.format(lastUpdated());
+  }
 }

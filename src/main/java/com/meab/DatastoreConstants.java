@@ -1,6 +1,12 @@
 package com.meab;
 
+import java.text.SimpleDateFormat;
+
 public class DatastoreConstants {
+
+  public static final SimpleDateFormat GITHUB_DATE_FORMAT = new SimpleDateFormat(
+    "yyyy-MM-dd'T'HH:mm:ss'Z'");
+
   public static class User {
     public static final String DATASTORE = "Users";
     public static final String ACCESS_TOKEN = "github token";

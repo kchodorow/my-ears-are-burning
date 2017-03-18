@@ -33,7 +33,8 @@ public class NotificationDatastore {
 
   void fetchNotifications(User user) throws IOException {
     HttpClient httpClient = new DefaultHttpClient();
-    HttpGet getRequest = new HttpGet(USER_URL + "?since=2017-02-20T22:01:45Z");
+    String lastUpdated = user.getLastUpdated();
+    HttpGet getRequest = new HttpGet(USER_URL + "?since=" + lastUpdated);
     getRequest.addHeader("Authorization", "token " + user.accessToken());
     HttpResponse response = httpClient.execute(getRequest);
     HttpEntity entity = response.getEntity();
