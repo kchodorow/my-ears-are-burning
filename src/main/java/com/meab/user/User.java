@@ -42,12 +42,12 @@ public abstract class User {
   }
 
   public void setCookie(HttpServletResponse response) {
-    Cookie cookie = new Cookie("id", id());
+    Cookie cookie = new Cookie(DatastoreConstants.User.COOKIE_NAME, id());
     response.addCookie(cookie);
   }
 
   public static void unsetCookie(String id, HttpServletResponse response) {
-    Cookie cookie = new Cookie("id", id);
+    Cookie cookie = new Cookie(DatastoreConstants.User.COOKIE_NAME, id);
     cookie.setMaxAge(0);
     response.addCookie(cookie);
   }

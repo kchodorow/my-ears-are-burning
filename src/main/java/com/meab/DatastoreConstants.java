@@ -12,6 +12,8 @@ public class DatastoreConstants {
     public static final String ACCESS_TOKEN = "github token";
     public static final String USER_ID = "id";
     public static final String LAST_UPDATED = "last updated";
+
+    public static final String COOKIE_NAME = "id";
   }
 
   public static class Notifications {
