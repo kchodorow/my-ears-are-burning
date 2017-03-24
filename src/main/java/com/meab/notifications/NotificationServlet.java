@@ -1,8 +1,11 @@
 package com.meab.notifications;
 
 import com.google.appengine.api.datastore.Entity;
+import com.meab.DatastoreConstants;
 import com.meab.user.UserDatastore;
 import com.meab.user.User;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -32,12 +35,21 @@ public class NotificationServlet extends HttpServlet {
     if (user.lastUpdated() == null || user.lastUpdated().before(oneHourAgo)) {
       notificationDatastore.fetchNotifications(user);
     }
+
+    JSONArray array = new JSONArray();
     for (Entity entity : notificationDatastore.getNotifications(id)) {
       Notification notification = Notification.fromEntity(entity);
       if (notification != null) {
-        response.getWriter().write(notification.getHtml());
+        array.put(notification.getJson());
       }
     }
+
+    JSONObject responseJson = new JSONObject();
+    responseJson.put("notifications", array);
+    responseJson.put("api", DatastoreConstants.API_VERSION);
+
+    response.setContentType("application/json");
+    response.getWriter().write(responseJson.toString());
   }
 
   private static Date getOneHourAgo() {

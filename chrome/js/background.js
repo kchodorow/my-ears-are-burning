@@ -1,27 +1,6 @@
 var URL = "https://myearsareburning-159618.appspot-preview.com/";
 
-var notifications = [
-  {
-    reason : "state_change",
-    title : "[Feature request] Bazel should cache already downloaded repositories and dependencies",
-    url : "https://github.com/bazelbuild/bazel/issues/1050"
-  },
-  {
-    reason : "mention",
-    title : "Add cargo_crate repository rule",
-    url : "https://github.com/bazelbuild/rules_rust/issues/2"
-  },
-  {
-    reason : "mention",
-    title : "Having trouble compiling bazel from source locally on Redhat",
-    url : "https://github.com/bazelbuild/bazel/issues/comments/284363006"
-  },
-  {
-    reason : "mention",
-    title : "Move to bazelbuild GitHub org",
-    url : "https://github.com/bazelbuild/bazel/issues/comments/284363006"
-  }
-];
+var notifications = [];
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
@@ -29,11 +8,18 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
-chrome.browserAction.onClicked.addListener(function(tab) {
+var alarmInfo = {
+  delayInMinutes:2,
+  periodInMinutes:5
+};
+chrome.alarms.create("update-github-notifications", alarmInfo);
+
+var updateNotifications = function(alarm) {
   var cookieDetails = {
     url : URL,
     name : "id"
   };
+  console.log("Alarm triggered, fetching cookie. " + JSON.stringify(alarm));
   chrome.cookies.get(cookieDetails, function(cookie) {
     if (cookie == null) {
       handleLogin();
@@ -42,27 +28,30 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     var userId = cookie.value;
     pollForNotifications(userId);
   });
-});
+};
+
+chrome.alarms.onAlarm.addListener(updateNotifications);
 
 function handleLogin() {
   // TODO
 }
 
-function pollForNotifications() {
+function pollForNotifications(userId) {
+  console.log("requesting notifications");
   var notificationUrl = URL + 'api/notifications?id=' + userId;
   var x = new XMLHttpRequest();
-  x.open('GET', searchUrl);
+  x.open('GET', notificationUrl);
   x.responseType = 'json';
   x.onload = function() {
     var response = x.response;
-    if (!response || !response.responseData || !response.responseData) {
-      errorCallback('No response from ' + URL + '!');
+    if (!response) {
+      console.log('No response from ' + URL + '!');
       return;
     }
-    console.log(response.responseData);
+    notifications = response.notifications;
   };
   x.onerror = function() {
-    errorCallback('Network error.');
+    console.log('Network error.');
   };
   x.send();
 }

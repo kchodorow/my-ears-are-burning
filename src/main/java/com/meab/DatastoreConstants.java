@@ -6,6 +6,7 @@ public class DatastoreConstants {
 
   public static final SimpleDateFormat GITHUB_DATE_FORMAT = new SimpleDateFormat(
     "yyyy-MM-dd'T'HH:mm:ss'Z'");
+  public static final int API_VERSION = 1;
 
   public static class User {
     public static final String DATASTORE = "Users";

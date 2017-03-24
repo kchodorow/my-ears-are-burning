@@ -76,10 +76,12 @@ public class Notification {
     return entity;
   }
 
-  String getHtml() {
-    return "<p>[" + object.getString("reason") + "] <a href=\""
-      + object.getJSONObject("subject").getString("url") + "\">"
-      + object.getJSONObject("subject").getString("title") + "</a></p>";
+  JSONObject getJson() {
+    JSONObject response = new JSONObject();
+    response.put("reason", object.getString("reason"));
+    response.put("title", object.getJSONObject("subject").getString("title") );
+    response.put("url", object.getJSONObject("subject").getString("url") );
+    return response;
   }
 
   private Date getDate() {
