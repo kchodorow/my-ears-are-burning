@@ -1,8 +1,31 @@
 var URL = "https://myearsareburning-159618.appspot-preview.com/";
 
+var notifications = [
+  {
+    reason : "state_change",
+    title : "[Feature request] Bazel should cache already downloaded repositories and dependencies",
+    url : "https://github.com/bazelbuild/bazel/issues/1050"
+  },
+  {
+    reason : "mention",
+    title : "Add cargo_crate repository rule",
+    url : "https://github.com/bazelbuild/rules_rust/issues/2"
+  },
+  {
+    reason : "mention",
+    title : "Having trouble compiling bazel from source locally on Redhat",
+    url : "https://github.com/bazelbuild/bazel/issues/comments/284363006"
+  },
+  {
+    reason : "mention",
+    title : "Move to bazelbuild GitHub org",
+    url : "https://github.com/bazelbuild/bazel/issues/comments/284363006"
+  }
+];
+
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    sendResponse({farewell: "Roger that, Roger."});
+    sendResponse({notifications: notifications});
   }
 );
 
