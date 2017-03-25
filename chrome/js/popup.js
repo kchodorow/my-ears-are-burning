@@ -1,5 +1,11 @@
 /* global $ */
 
+var Extension = {
+  DEFAULT_ICON:'assets/icon.png',
+  UNREAD_ICON:'assets/unread.png',
+  READ_ICON:'assets/read.png'
+};
+
 document.addEventListener('DOMContentLoaded', function () {
   chrome.runtime.sendMessage({}, fetchNotifications);
 });
@@ -9,9 +15,15 @@ var Popup = {};
 Popup.NO_NOTIFICATIONS = "No notifications loaded, yet.";
 
 var fetchNotifications = function(response) {
+  var icon = _fetchNotifications(response);
+  chrome.browserAction.setIcon({path: icon});
+};
+
+var _fetchNotifications = function(response) {
+
   if (!response) {
     console.log("No response.");
-    return;
+    return Extension.DEFAULT_ICON;
   }
 
   var mainDiv = $('#github-notifications');
@@ -20,7 +32,7 @@ var fetchNotifications = function(response) {
   var notifications = response.notifications;
   if (notifications.length == 0) {
     mainDiv.html(Popup.NO_NOTIFICATIONS);
-    return;
+    return Extension.READ_ICON;
   }
 
   var table = $('<table/>');
@@ -36,6 +48,7 @@ var fetchNotifications = function(response) {
     tr.appendTo(table);
   }
   table.appendTo(mainDiv);
+  return Extension.UNREAD_ICON;
 };
 
 var getReasonSymbol = function(reason) {

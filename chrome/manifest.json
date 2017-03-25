@@ -6,8 +6,8 @@
     "version": "0.1",
 
     "browser_action": {
-        "default_title": "Login to get notifications.",
-        "default_icon" : "icon.png",
+        "default_title": "Loading notifications...",
+        "default_icon" : "assets/icon.png",
         "default_popup": "popup.html"
     },
     "permissions": [
