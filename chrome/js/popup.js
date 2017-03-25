@@ -1,9 +1,25 @@
-/* global $ */
+/* global $, chrome */
 
-var Extension = {};
+var Extension = {
+  alarm : null
+};
+
+Extension.getNextUpdateSecs = function() {
+  if (Extension.alarm == null) {
+    return null;
+  }
+  var next = Extension.alarm.scheduledTime;
+  var now = new Date().getTime();
+  return Math.ceil((next - now) / 1000);
+};
 
 Extension.noStatus = function() {
-  chrome.browserAction.setTitle({title : 'No notifications loaded, yet.'});
+  var title = 'No notifications loaded, yet.';
+  var nextUpdate = Extension.getNextUpdateSecs();
+  if (nextUpdate != null) {
+    title += ' (Next update in ' + nextUpdate + ' seconds.)';
+  }
+  chrome.browserAction.setTitle({title : title});
   chrome.browserAction.setIcon({path: 'assets/icon.png'});
 };
 
@@ -18,6 +34,12 @@ Extension.unread = function(num) {
 };
 
 var fetchNotifications = function(alarm) {
+  chrome.alarms.get(
+    "update-github-notifications",
+    function(alarm) {
+      Extension.alarm = alarm;
+    }
+  );
   chrome.runtime.sendMessage({}, receiveNotifications);
 };
 
@@ -36,7 +58,13 @@ var receiveNotifications = function(response) {
 
   // Before there are any notifications loaded.
   if (response.notifications == null) {
-    mainDiv.text('Still loading...');
+    console.log(response.alarm);
+    var nextUpdate = Extension.getNextUpdateSecs();
+    if (nextUpdate == null) {
+      mainDiv.text('Still loading...' );
+    } else {
+      mainDiv.text('Fetching in ' + nextUpdate + ' seconds.');
+    }
     Extension.noStatus();
     return;
   }
@@ -51,12 +79,17 @@ var receiveNotifications = function(response) {
   var table = $('<table/>');
   for (var i = 0; i < notifications.length; ++i) {
     var notification = notifications[i];
-    var reason = getReasonSymbol(notification.reason);
+    var reason = Popup.getReasonSymbol(notification.reason);
+    var url = Popup.getUrl(notification.url);
     var tr = $('<tr/>');
     $('<td/>').html(reason).appendTo(tr);
     var a = $('<a/>')
-          .attr('href', notification.url)
+          .attr('href', '#')
           .text(notification.title);
+    a.on('click', function() {
+      chrome.tabs.create({url:url});
+      return false;
+    });
     a.appendTo($('<td/>')).appendTo(tr);
     tr.appendTo(table);
   }
@@ -65,7 +98,12 @@ var receiveNotifications = function(response) {
   return;
 };
 
-var getReasonSymbol = function(reason) {
+var Popup = {
+  API_PREFIX:'https://api.github.com/repos/',
+  HTML_PREFIX:'https://github.com/'
+};
+
+Popup.getReasonSymbol = function(reason) {
   switch (reason) {
   case "mention":
     return "@";
@@ -79,4 +117,10 @@ var getReasonSymbol = function(reason) {
     return '&#8618;';  // Arrow.
   }
   return "?";
+};
+
+// There's probably a better way to get these, but so far they seem
+// pretty consistently formatted.
+Popup.getUrl = function(apiUrl) {
+  return Popup.HTML_PREFIX + apiUrl.substring(Popup.API_PREFIX.length);
 };
