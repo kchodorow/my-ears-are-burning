@@ -1,6 +1,6 @@
 var URL = "https://myearsareburning-159618.appspot-preview.com/";
 
-var notifications = [];
+var notifications = null;
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {

@@ -1,38 +1,51 @@
 /* global $ */
 
-var Extension = {
-  DEFAULT_ICON:'assets/icon.png',
-  UNREAD_ICON:'assets/unread.png',
-  READ_ICON:'assets/read.png'
+var Extension = {};
+
+Extension.noStatus = function() {
+  chrome.browserAction.setTitle({title : 'No notifications loaded, yet.'});
+  chrome.browserAction.setIcon({path: 'assets/icon.png'});
 };
 
-document.addEventListener('DOMContentLoaded', function () {
-  chrome.runtime.sendMessage({}, fetchNotifications);
-});
-
-var Popup = {};
-
-Popup.NO_NOTIFICATIONS = "No notifications loaded, yet.";
-
-var fetchNotifications = function(response) {
-  var icon = _fetchNotifications(response);
-  chrome.browserAction.setIcon({path: icon});
+Extension.caughtUp = function() {
+  chrome.browserAction.setTitle({title : 'All caught up!'});
+  chrome.browserAction.setIcon({path: 'assets/read.png'});
 };
 
-var _fetchNotifications = function(response) {
+Extension.unread = function(num) {
+  chrome.browserAction.setTitle({title : num + ' unread notifications.'});
+  chrome.browserAction.setIcon({path: 'assets/unread.png'});
+};
 
-  if (!response) {
-    console.log("No response.");
-    return Extension.DEFAULT_ICON;
+var fetchNotifications = function(alarm) {
+  chrome.runtime.sendMessage({}, receiveNotifications);
+};
+
+chrome.alarms.onAlarm.addListener(fetchNotifications);
+document.addEventListener('DOMContentLoaded', fetchNotifications);
+
+var receiveNotifications = function(response) {
+  // This is just a bug.
+  if (response == null) {
+    console.log('Got null response from background tab.');
+    return;
   }
 
   var mainDiv = $('#github-notifications');
   mainDiv.empty();
 
+  // Before there are any notifications loaded.
+  if (response.notifications == null) {
+    mainDiv.text('Still loading...');
+    Extension.noStatus();
+    return;
+  }
+
   var notifications = response.notifications;
   if (notifications.length == 0) {
-    mainDiv.html(Popup.NO_NOTIFICATIONS);
-    return Extension.READ_ICON;
+    mainDiv.text('All caught up!');
+    Extension.caughtUp();
+    return;
   }
 
   var table = $('<table/>');
@@ -48,7 +61,8 @@ var _fetchNotifications = function(response) {
     tr.appendTo(table);
   }
   table.appendTo(mainDiv);
-  return Extension.UNREAD_ICON;
+  Extension.unread(notifications.length);
+  return;
 };
 
 var getReasonSymbol = function(reason) {
