@@ -1,27 +1,42 @@
-document.addEventListener('DOMContentLoaded', function () {
-  var greeting = {greeting: "What's your vector, Victor?"};
-  chrome.runtime.sendMessage(greeting, function(response) {
-    if (!response) {
-      console.log("No response.");
-      return;
-    }
+/* global $ */
 
-    var notifications = response.notifications;
-    var html = $('<ul></ul>');
-    for (var i = 0; i < notifications.length; ++i) {
-      var notification = notifications[i];
-      var reason = getReasonSymbol(notification.reason);
-      var a = $('<a/>')
-            .attr('href', notification.url)
-            .text(reason + " " + notification.title);
-      var li = $('<li/>');
-      a.appendTo(li);
-      li.appendTo(html);
-    }
-    html.appendTo($("#github-notifications"));
-  });
+document.addEventListener('DOMContentLoaded', function () {
+  chrome.runtime.sendMessage({}, fetchNotifications);
 });
 
+var Popup = {};
+
+Popup.NO_NOTIFICATIONS = "No notifications loaded, yet.";
+
+var fetchNotifications = function(response) {
+  if (!response) {
+    console.log("No response.");
+    return;
+  }
+
+  var mainDiv = $('#github-notifications');
+  mainDiv.empty();
+
+  var notifications = response.notifications;
+  if (notifications.length == 0) {
+    mainDiv.html(Popup.NO_NOTIFICATIONS);
+    return;
+  }
+
+  var table = $('<table/>');
+  for (var i = 0; i < notifications.length; ++i) {
+    var notification = notifications[i];
+    var reason = getReasonSymbol(notification.reason);
+    var tr = $('<tr/>');
+    $('<td/>').html(reason).appendTo(tr);
+    var a = $('<a/>')
+          .attr('href', notification.url)
+          .text(notification.title);
+    a.appendTo($('<td/>')).appendTo(tr);
+    tr.appendTo(table);
+  }
+  table.appendTo(mainDiv);
+};
 
 var getReasonSymbol = function(reason) {
   switch (reason) {

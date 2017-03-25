@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addListener(
 );
 
 var alarmInfo = {
-  delayInMinutes:2,
+  delayInMinutes:1.1,
   periodInMinutes:5
 };
 chrome.alarms.create("update-github-notifications", alarmInfo);
@@ -19,12 +19,10 @@ var updateNotifications = function(alarm) {
     url : URL,
     name : "id"
   };
-  console.log("Alarm triggered, fetching cookie. " + JSON.stringify(alarm));
   chrome.cookies.get(cookieDetails, function(cookie) {
     if (cookie == null) {
       handleLogin();
     }
-    console.log("User id: " + cookie.value);
     var userId = cookie.value;
     pollForNotifications(userId);
   });
@@ -37,7 +35,6 @@ function handleLogin() {
 }
 
 function pollForNotifications(userId) {
-  console.log("requesting notifications");
   var notificationUrl = URL + 'api/notifications?id=' + userId;
   var x = new XMLHttpRequest();
   x.open('GET', notificationUrl);
@@ -49,6 +46,7 @@ function pollForNotifications(userId) {
       return;
     }
     notifications = response.notifications;
+    console.log("updating notifications: " + notifications.length);
   };
   x.onerror = function() {
     console.log('Network error.');

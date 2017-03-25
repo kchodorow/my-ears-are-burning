@@ -42,7 +42,6 @@ import java.util.logging.Logger;
 public class Notification {
   private static final Logger log = Logger.getLogger(Notification.class.getName());
 
-  // Reasons: author, state_change, mention
   private final JSONObject object;
 
   public Notification(JSONObject jsonObject) {
@@ -78,6 +77,7 @@ public class Notification {
 
   JSONObject getJson() {
     JSONObject response = new JSONObject();
+    response.put("id", object.getString("id"));
     response.put("reason", object.getString("reason"));
     response.put("title", object.getJSONObject("subject").getString("title") );
     response.put("url", object.getJSONObject("subject").getString("url") );
