@@ -1,7 +1,9 @@
-package com.meab.notifications;
+package com.meab.api;
 
 import com.google.appengine.api.datastore.Entity;
 import com.meab.DatastoreConstants;
+import com.meab.notifications.Notification;
+import com.meab.notifications.NotificationDatastore;
 import com.meab.user.UserDatastore;
 import com.meab.user.User;
 import org.json.JSONArray;

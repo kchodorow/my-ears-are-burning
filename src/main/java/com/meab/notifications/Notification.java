@@ -26,7 +26,9 @@ import java.util.logging.Logger;
  *          "type":"Issue"
  *      },
  *      "repository":{
- *          "id":20773773,"name":"bazel","full_name":"bazelbuild/bazel",
+ *          "id":20773773,
+ *          "name":"bazel",
+ *          "full_name":"bazelbuild/bazel",
  *          "owner":{
  *              "login":"bazelbuild",
  *              "id":11684617,
@@ -48,7 +50,7 @@ public class Notification {
     this.object = jsonObject;
   }
 
-  static Notification fromEntity(Entity entity) {
+  public static Notification fromEntity(Entity entity) {
     Text fullText = (Text) entity.getProperty(DatastoreConstants.Notifications.FULL_TEXT);
     if (fullText == null) {
       log.warning("No text for " + entity);
@@ -75,12 +77,13 @@ public class Notification {
     return entity;
   }
 
-  JSONObject getJson() {
+  public JSONObject getJson() {
     JSONObject response = new JSONObject();
     response.put("id", object.getString("id"));
     response.put("reason", object.getString("reason"));
-    response.put("title", object.getJSONObject("subject").getString("title") );
-    response.put("url", object.getJSONObject("subject").getString("url") );
+    response.put("title", object.getJSONObject("subject").getString("title"));
+    response.put("url", object.getJSONObject("subject").getString("url"));
+    response.put("repository", object.getJSONObject("repository").getString("full_name"));
     return response;
   }
 

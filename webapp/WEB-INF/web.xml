@@ -13,7 +13,7 @@
     </servlet>
     <servlet>
         <servlet-name>notifications</servlet-name>
-        <servlet-class>com.meab.notifications.NotificationServlet</servlet-class>
+        <servlet-class>com.meab.api.NotificationServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -28,5 +28,4 @@
         <servlet-name>notifications</servlet-name>
         <url-pattern>/api/notifications</url-pattern>
     </servlet-mapping>
-
 </web-app>

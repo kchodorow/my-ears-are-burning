@@ -31,7 +31,7 @@ public class NotificationDatastore {
   private final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
   private final UserDatastore userDatastore = new UserDatastore();
 
-  void fetchNotifications(User user) throws IOException {
+  public void fetchNotifications(User user) throws IOException {
     HttpClient httpClient = new DefaultHttpClient();
     String lastUpdated = user.getLastUpdated();
     HttpGet getRequest = new HttpGet(USER_URL + "?since=" + lastUpdated);
@@ -55,7 +55,7 @@ public class NotificationDatastore {
     userDatastore.setLastUpdated(user);
   }
 
-  Iterable<Entity> getNotifications(String userId) {
+  public Iterable<Entity> getNotifications(String userId) {
     Query.FilterPredicate predicate = new Query.FilterPredicate(
       DatastoreConstants.Notifications.USER_ID, Query.FilterOperator.EQUAL, userId);
     Query query = new Query(DatastoreConstants.Notifications.DATASTORE).setFilter(predicate);
