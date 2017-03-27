@@ -77,14 +77,27 @@ public class Notification {
     return entity;
   }
 
-  public JSONObject getJson() {
-    JSONObject response = new JSONObject();
-    response.put("id", object.getString("id"));
-    response.put("reason", object.getString("reason"));
-    response.put("title", object.getJSONObject("subject").getString("title"));
-    response.put("url", object.getJSONObject("subject").getString("url"));
-    response.put("repository", object.getJSONObject("repository").getString("full_name"));
-    return response;
+  public JSONObject getJson() throws InvalidJsonException {
+    try {
+      JSONObject response = new JSONObject();
+      response.put("id", object.getString("id"));
+      response.put("reason", object.getString("reason"));
+      response.put("title", object.getJSONObject("subject").getString("title"));
+      response.put("url", object.getJSONObject("subject").getString("url"));
+      response.put("repository", object.getJSONObject("repository").getString("full_name"));
+      return response;
+    } catch (JSONException e) {
+      log.warning(e.getMessage() + ": " + object.toString());
+      throw new InvalidJsonException("Unable to parse JSON: " + e.getMessage());
+    }
+  }
+
+  public boolean isRead() {
+    return !object.getBoolean("unread");
+  }
+
+  public String getRepository() {
+    return object.getJSONObject("repository").getString("full_name");
   }
 
   private Date getDate() {
@@ -97,5 +110,11 @@ public class Notification {
       date = new Date();
     }
     return date;
+  }
+
+  public static class InvalidJsonException extends Exception {
+    public InvalidJsonException(String message) {
+      super(message);
+    }
   }
 }

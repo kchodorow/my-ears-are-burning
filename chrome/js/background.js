@@ -1,10 +1,16 @@
+/* global chrome */
+
 var URL = "https://myearsareburning-159618.appspot-preview.com/";
 
-var notifications = null;
+var response = {
+  notifications : [],
+  state : "startup",
+  message : null
+};
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    sendResponse({notifications: notifications});
+    sendResponse(response);
   }
 );
 
@@ -40,16 +46,18 @@ function pollForNotifications(userId) {
   x.open('GET', notificationUrl);
   x.responseType = 'json';
   x.onload = function() {
-    var response = x.response;
-    if (!response) {
-      console.log('No response from ' + URL + '!');
+    var githubResponse = x.response;
+    if (!githubResponse) {
+      response.state = "error";
+      response.message = 'No response from ' + URL + '!';
       return;
     }
-    notifications = response.notifications;
-    console.log("updating notifications: " + notifications.length);
+    response.notifications = githubResponse.notifications;
+    response.state = "loaded";
   };
   x.onerror = function() {
-    console.log('Network error.');
+    response.state = "error";
+    response.message = 'Network error.';
   };
   x.send();
 }

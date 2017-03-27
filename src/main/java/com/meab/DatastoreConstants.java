@@ -15,6 +15,8 @@ public class DatastoreConstants {
     public static final String LAST_UPDATED = "last updated";
 
     public static final String COOKIE_NAME = "id";
+    public static final String TRACKED_REPOSITORIES = "repos";
+    public static final String USER_INFO = "user info";
   }
 
   public static class Notifications {

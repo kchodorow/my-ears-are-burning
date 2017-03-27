@@ -16,6 +16,7 @@ java_library(
         "@commons_logging//jar",
         "@guava//jar",
         "@javax_servlet_api//jar",
+        "@json//jar",
     ],
 )
 

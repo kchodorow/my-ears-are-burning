@@ -16,6 +16,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -47,7 +48,11 @@ public class NotificationDatastore {
   public void store(JSONArray notifications, User user) {
     ImmutableList.Builder<Entity> builder = ImmutableList.builder();
     for (int i = 0; i < notifications.length(); ++i) {
-      Entity notification = new Notification(notifications.getJSONObject(i)).getEntity();
+      JSONObject jsonObject = notifications.getJSONObject(i);
+      if (jsonObject.get("reason").equals("invitation")) {
+        continue;
+      }
+      Entity notification = new Notification(jsonObject).getEntity();
       notification.setProperty(DatastoreConstants.Notifications.USER_ID, user.id());
       builder.add(notification);
     }

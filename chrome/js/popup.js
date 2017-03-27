@@ -56,9 +56,14 @@ var receiveNotifications = function(response) {
   var mainDiv = $('#github-notifications');
   mainDiv.empty();
 
+  if (response.state == "error") {
+    mainDiv.text(response.message);
+    Extension.noStatus();
+    return;
+  }
+
   // Before there are any notifications loaded.
-  if (response.notifications == null) {
-    console.log(response.alarm);
+  if (response.state == "startup") {
     var nextUpdate = Extension.getNextUpdateSecs();
     if (nextUpdate == null) {
       mainDiv.text('Still loading...' );
@@ -69,34 +74,53 @@ var receiveNotifications = function(response) {
     return;
   }
 
-  var notifications = response.notifications;
-  if (notifications.length == 0) {
+  var notificationMap = response.notifications;
+  if (notificationMap.length == 0) {
     mainDiv.text('All caught up!');
     Extension.caughtUp();
     return;
   }
 
-  var table = $('<table/>');
-  for (var i = 0; i < notifications.length; ++i) {
-    var notification = notifications[i];
-    var reason = Popup.getReasonSymbol(notification.reason);
-    var url = Popup.getUrl(notification.url);
-    var tr = $('<tr/>');
-    $('<td/>').html(reason).appendTo(tr);
-    var a = $('<a/>')
-          .attr('href', '#')
-          .text(notification.title);
-    a.on('click', function() {
-      chrome.tabs.create({url:url});
-      return false;
-    });
-    a.appendTo($('<td/>')).appendTo(tr);
-    tr.appendTo(table);
+  var table = $('<table/>').attr('class', 'table table-hover');
+  for (var repo in notificationMap) {
+    createRepoHeader(repo).appendTo(table);
+    var notifications = notificationMap[repo];
+    for (var i = 0; i < notifications.length; ++i) {
+      var notification = notifications[i];
+      var reason = Popup.getReasonSymbol(notification.reason);
+      var url = Popup.getUrl(notification.url);
+      var tr = $('<tr/>');
+      $('<td/>').html(reason).appendTo(tr);
+      var a = $('<a/>')
+            .attr('href', '#')
+            .text(notification.title);
+      a.on('click', function() {
+        chrome.tabs.create({url:url});
+        return false;
+      });
+      a.appendTo($('<td/>')).appendTo(tr);
+      tr.appendTo(table);
+    }
   }
   table.appendTo(mainDiv);
   Extension.unread(notifications.length);
   return;
 };
+
+var createRepoHeader = function(repo) {
+  var url = Popup.HTML_PREFIX + repo;
+  var a = $('<a/>').attr('href', '#').text(url);
+  a.on('click', function() {
+    chrome.tabs.create({url:url});
+    return false;
+  });
+  var th = $('<th/>').attr('colspan', '3');
+  var tr = $('<tr/>');
+  a.appendTo(th);
+  th.appendTo(tr);
+  return tr;
+};
+
 
 var Popup = {
   API_PREFIX:'https://api.github.com/repos/',

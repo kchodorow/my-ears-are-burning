@@ -4,54 +4,49 @@ import com.google.appengine.api.datastore.Entity;
 import com.meab.DatastoreConstants;
 import com.meab.notifications.Notification;
 import com.meab.notifications.NotificationDatastore;
-import com.meab.user.UserDatastore;
 import com.meab.user.User;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 
-public class NotificationServlet extends HttpServlet {
-  private UserDatastore userDatastore = new UserDatastore();
+public class NotificationServlet extends ApiServlet {
   private NotificationDatastore notificationDatastore = new NotificationDatastore();
 
   @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String id = User.getIdFromCookie(request);
-    if (id == null) {
-      response.getWriter().write("Not logged in.");
-      return;
-    }
-    User user = userDatastore.getUser(id);
-    if (user == null) {
-      User.unsetCookie(id, response);
-      response.getWriter().write("Couldn't find user for " + id);
-      return;
-    }
-
+  public void apiGet(User user, HttpServletRequest request, JSONObject response)
+    throws ApiException {
     Date oneHourAgo = NotificationServlet.getOneHourAgo();
     if (user.lastUpdated() == null || user.lastUpdated().before(oneHourAgo)) {
-      notificationDatastore.fetchNotifications(user);
-    }
-
-    JSONArray array = new JSONArray();
-    for (Entity entity : notificationDatastore.getNotifications(id)) {
-      Notification notification = Notification.fromEntity(entity);
-      if (notification != null) {
-        array.put(notification.getJson());
+      try {
+        notificationDatastore.fetchNotifications(user);
+      } catch (IOException e) {
+        throw new ApiException(e.getMessage());
       }
     }
 
-    JSONObject responseJson = new JSONObject();
-    responseJson.put("notifications", array);
-    responseJson.put("api", DatastoreConstants.API_VERSION);
+    JSONObject notificationsByRepository = new JSONObject();
+    for (Entity entity : notificationDatastore.getNotifications(user.id())) {
+      Notification notification = Notification.fromEntity(entity);
+      if (notification == null || notification.isRead()) {
+        continue;
+      }
 
-    response.setContentType("application/json");
-    response.getWriter().write(responseJson.toString());
+      String repository = notification.getRepository();
+      if (!notificationsByRepository.has(repository)) {
+        notificationsByRepository.put(repository, new JSONArray());
+      }
+      try {
+        ((JSONArray) notificationsByRepository.get(repository)).put(notification.getJson());
+      } catch (Notification.InvalidJsonException e) {
+        // Skip this element.
+      }
+    }
+
+    response.put("notifications", notificationsByRepository);
+    response.put("api", DatastoreConstants.API_VERSION);
   }
 
   private static Date getOneHourAgo() {
