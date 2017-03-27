@@ -83,8 +83,11 @@ var receiveNotifications = function(response) {
 
   var table = $('<table/>').attr('class', 'table table-hover');
   for (var repo in notificationMap) {
-    createRepoHeader(repo).appendTo(table);
     var notifications = notificationMap[repo];
+    if (notifications.length == 0) {
+      continue;
+    }
+    createRepoHeader(repo).appendTo(table);
     for (var i = 0; i < notifications.length; ++i) {
       var notification = notifications[i];
       var reason = Popup.getReasonSymbol(notification.reason);
