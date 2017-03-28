@@ -126,6 +126,7 @@ Popup.prototype.loaded = function() {
   }
 
   var table = $('<table/>').attr('class', 'table table-hover');
+  var count = 0;
   for (var repo in notificationMap) {
     var notifications = notificationMap[repo];
     if (notifications.length == 0) {
@@ -138,6 +139,7 @@ Popup.prototype.loaded = function() {
         // TODO: this could display an empty section.
         continue;
       }
+      count++;
       var reason = Popup.getReasonSymbol(notification.reason);
       var url = Popup.getUrl(notification.url);
       var tr = $('<tr/>').attr('id', notification.id);
@@ -164,7 +166,7 @@ Popup.prototype.loaded = function() {
     }
   }
   table.appendTo(this.div_);
-  Extension.unread(notifications.length);
+  Extension.unread(count);
 };
 
 Popup.getReasonSymbol = function(reason) {
