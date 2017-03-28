@@ -46,6 +46,7 @@ function handleLogin() {
 }
 
 function pollForNotifications(userId) {
+  response.state = "requesting";
   var notificationUrl = URL + 'api/notifications?id=' + userId;
   var x = new XMLHttpRequest();
   x.open('GET', notificationUrl);

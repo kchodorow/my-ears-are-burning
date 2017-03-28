@@ -65,8 +65,12 @@ var receiveNotifications = function(response) {
   case 'error':
     popup.error();
     break;
+  case 'requesting':
+    popup.requesting();
+    break;
   case 'loaded':
     popup.loaded();
+    break;
   }
 };
 
@@ -108,6 +112,11 @@ Popup.prototype.error = function() {
   Extension.noStatus();
 };
 
+Popup.prototype.requesting = function() {
+  this.div_.text('Requesting notifications! Please stand by...');
+  Extension.noStatus();
+};
+
 Popup.prototype.loaded = function() {
   var a = $('<a/>').attr('href', '#').text('Please login to get started.');
   a.on('click', function() {
@@ -132,7 +141,7 @@ Popup.prototype.loaded = function() {
     if (notifications.length == 0) {
       continue;
     }
-    createRepoHeader(repo).appendTo(table);
+    var trs = [];
     for (var i = 0; i < notifications.length; ++i) {
       var notification = notifications[i];
       if (notification.id in this.response_.muted) {
@@ -158,13 +167,30 @@ Popup.prototype.loaded = function() {
             .appendTo($('<td/>').appendTo(tr));
       mute.on('click', function() {
         var tr = $(this).parent().parent();
+        var tbody = tr.parent();
         chrome.runtime.sendMessage(
           {post:'mute', id:tr.attr('id')}, receiveNotifications);
         tr.remove();
+        if (tbody.is(':empty')) {
+          var thead = tbody.prev();
+          thead.remove();
+          tbody.remove();
+        }
       });
-      tr.appendTo(table);
+      trs.push(tr);
+    }
+
+    // Only display this section if there's at least one notification.
+    if (trs.length > 0) {
+      createRepoHeader(repo).appendTo($('<thead/>').appendTo(table));
+      var tbody = $('<tbody/>');
+      for (i = 0; i < trs.length; ++i) {
+        trs[i].appendTo(tbody);
+      }
+      tbody.appendTo(table);
     }
   }
+
   table.appendTo(this.div_);
   Extension.unread(count);
 };
