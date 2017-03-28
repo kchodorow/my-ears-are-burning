@@ -5,12 +5,17 @@ var URL = "https://myearsareburning-159618.appspot-preview.com/";
 var response = {
   notifications : [],
   state : "startup",
-  message : null
+  message : null,
+  muted : {}
 };
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    sendResponse(response);
+    if ('get' in request && request.get == 'notifications') {
+      sendResponse(response);
+    } else if ('post' in request && request.post == 'mute') {
+      response.muted[request.id] = true;
+    }
   }
 );
 
@@ -37,7 +42,7 @@ var updateNotifications = function(alarm) {
 chrome.alarms.onAlarm.addListener(updateNotifications);
 
 function handleLogin() {
-  // TODO
+  response.state = "need-login";
 }
 
 function pollForNotifications(userId) {

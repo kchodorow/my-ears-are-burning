@@ -2,7 +2,7 @@
 
 var Extension = {
   alarm : null,
-  muted : []
+  URL : 'https://myearsareburning-159618.appspot-preview.com/'
 };
 
 Extension.getNextUpdateSecs = function() {
@@ -41,7 +41,7 @@ var fetchNotifications = function(alarm) {
       Extension.alarm = alarm;
     }
   );
-  chrome.runtime.sendMessage({}, receiveNotifications);
+  chrome.runtime.sendMessage({get:'notifications'}, receiveNotifications);
 };
 
 chrome.alarms.onAlarm.addListener(fetchNotifications);
@@ -54,30 +54,73 @@ var receiveNotifications = function(response) {
     return;
   }
 
-  var mainDiv = $('#github-notifications');
-  mainDiv.empty();
-
-  if (response.state == "error") {
-    mainDiv.text(response.message);
-    Extension.noStatus();
-    return;
+  var popup = new Popup(response);
+  switch (response.state) {
+  case 'startup':
+    popup.startup();
+    break;
+  case 'login':
+    popup.login();
+    break;
+  case 'error':
+    popup.error();
+    break;
+  case 'loaded':
+    popup.loaded();
   }
+};
 
-  // Before there are any notifications loaded.
-  if (response.state == "startup") {
-    var nextUpdate = Extension.getNextUpdateSecs();
-    if (nextUpdate == null) {
-      mainDiv.text('Still loading...' );
-    } else {
-      mainDiv.text('Fetching in ' + nextUpdate + ' seconds.');
-    }
-    Extension.noStatus();
-    return;
+var createRepoHeader = function(repo) {
+  var url = Popup.HTML_PREFIX + repo;
+  var a = $('<a/>').attr('href', '#').text(url);
+  a.on('click', function() {
+    chrome.tabs.create({url:url});
+    return false;
+  });
+  var th = $('<th/>').attr('colspan', '3');
+  var tr = $('<tr/>');
+  a.appendTo(th);
+  th.appendTo(tr);
+  return tr;
+};
+
+var Popup = function(response) {
+  this.response_ = response;
+  this.div_ = $('#github-notifications');
+  this.div_.empty();
+};
+
+Popup.API_PREFIX = 'https://api.github.com/repos/';
+Popup.HTML_PREFIX = 'https://github.com/';
+
+Popup.prototype.startup = function() {
+  var nextUpdate = Extension.getNextUpdateSecs();
+  if (nextUpdate == null) {
+    this.div_.text('Still loading...' );
+  } else {
+    this.div_.text('Fetching in ' + nextUpdate + ' seconds.');
   }
+  Extension.noStatus();
+};
 
-  var notificationMap = response.notifications;
+Popup.prototype.error = function() {
+  this.div_.text(this.response_.message);
+  Extension.noStatus();
+};
+
+Popup.prototype.loaded = function() {
+  var a = $('<a/>').attr('href', '#').text('Please login to get started.');
+  a.on('click', function() {
+    chrome.tabs.create({url:Extension.URL + 'login'});
+    return false;
+  });
+  a.appendTo(this.div_);
+};
+
+Popup.prototype.loaded = function() {
+    var notificationMap = this.response_.notifications;
   if (notificationMap.length == 0) {
-    mainDiv.text('All caught up!');
+    this.div_.text('All caught up!');
     Extension.caughtUp();
     return;
   }
@@ -91,7 +134,7 @@ var receiveNotifications = function(response) {
     createRepoHeader(repo).appendTo(table);
     for (var i = 0; i < notifications.length; ++i) {
       var notification = notifications[i];
-      if (notification.id in Extension.muted) {
+      if (notification.id in this.response_.muted) {
         // TODO: this could display an empty section.
         continue;
       }
@@ -113,35 +156,15 @@ var receiveNotifications = function(response) {
             .appendTo($('<td/>').appendTo(tr));
       mute.on('click', function() {
         var tr = $(this).parent().parent();
-        Extension.muted.push(tr.attr('id'));
+        chrome.runtime.sendMessage(
+          {post:'mute', id:tr.attr('id')}, receiveNotifications);
         tr.remove();
       });
       tr.appendTo(table);
     }
   }
-  table.appendTo(mainDiv);
+  table.appendTo(this.div_);
   Extension.unread(notifications.length);
-  return;
-};
-
-var createRepoHeader = function(repo) {
-  var url = Popup.HTML_PREFIX + repo;
-  var a = $('<a/>').attr('href', '#').text(url);
-  a.on('click', function() {
-    chrome.tabs.create({url:url});
-    return false;
-  });
-  var th = $('<th/>').attr('colspan', '3');
-  var tr = $('<tr/>');
-  a.appendTo(th);
-  th.appendTo(tr);
-  return tr;
-};
-
-
-var Popup = {
-  API_PREFIX:'https://api.github.com/repos/',
-  HTML_PREFIX:'https://github.com/'
 };
 
 Popup.getReasonSymbol = function(reason) {
