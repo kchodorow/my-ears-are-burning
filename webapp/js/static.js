@@ -21,33 +21,11 @@ var loadFromServer = function() {
 
   // 2. The visitor is logged in, give next steps.
   var user = new User(id);
-  user.generateInfo();
+  user.generateList();
 };
 
 var User = function(id) {
   this.id_ = id;
-};
-
-User.prototype.generateInfo = function() {
-  $.getJSON('/api/user').done(function(json) {
-    if (!json.ok) {
-      // TODO: deal with errors.
-      return;
-    }
-    $('#login')
-      .attr('href', '/user/' + json.name)
-      .text(json.name);
-
-    if (json.repos.length > 0) {
-      $('#next').html('Finally, <a href="TODO">install the chrome extension</a>.');
-    }
-    for (var i = 0; i < json.repos.length; ++i) {
-      var repo = json.repos[i];
-      $('<li/>').text('https://github.com/' + repo).appendTo($('#tracked'));
-    }
-
-    this.generateRepoList();
-  }).fail(failLogger);
 };
 
 User.prototype.generateList = function() {
@@ -57,10 +35,22 @@ User.prototype.generateList = function() {
       // TODO: handle error.
       return;
     }
+
+    $('#login')
+      .attr('href', '/user/' + json.name)
+      .text(json.name);
+
+    $('#next').text("Choose a repository to track.");
+    var div = $('<div/>').addClass('list-group').appendTo($('#next'));
     for (var i = 0; i < json.repositories.length; ++i) {
       var repo = json.repositories[i];
-      $('<li>').text(repo).appendTo($('#repo-list'));
+      $('<a/>').attr('href', 'https://github.com/' + repo)
+        .addClass('list-group-item list-group-item-action')
+        .text('https://github.com/' + repo)
+        .appendTo(div);
     }
+    $('<div/>').html(
+      'If you\'d like to track more than one repository, please <a href="/subscribe">subscribe</a> to help cover the costs of running this service.').appendTo('#next');
   }).fail(failLogger);
 };
 

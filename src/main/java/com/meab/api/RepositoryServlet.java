@@ -34,11 +34,13 @@ public class RepositoryServlet extends ApiServlet {
       }
       seenRepositories.add(notification.getRepository());
     }
-
     for (String repo : seenRepositories) {
       repositories.put(repo);
     }
+    response.put("ok", true);
     response.put("repositories", repositories);
+    response.put("tracked", user.trackedRepositories().toString());
+    response.put("name", user.userInfo().getString("login"));
   }
 
   /**
