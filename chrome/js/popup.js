@@ -1,7 +1,8 @@
 /* global $, chrome */
 
 var Extension = {
-  alarm : null
+  alarm : null,
+  muted : []
 };
 
 Extension.getNextUpdateSecs = function() {
@@ -90,9 +91,13 @@ var receiveNotifications = function(response) {
     createRepoHeader(repo).appendTo(table);
     for (var i = 0; i < notifications.length; ++i) {
       var notification = notifications[i];
+      if (notification.id in Extension.muted) {
+        // TODO: this could display an empty section.
+        continue;
+      }
       var reason = Popup.getReasonSymbol(notification.reason);
       var url = Popup.getUrl(notification.url);
-      var tr = $('<tr/>');
+      var tr = $('<tr/>').attr('id', notification.id);
       $('<td/>').html(reason).appendTo(tr);
       var a = $('<a/>')
             .attr('href', '#')
@@ -101,7 +106,16 @@ var receiveNotifications = function(response) {
         chrome.tabs.create({url:url});
         return false;
       });
-      a.appendTo($('<td/>')).appendTo(tr);
+      a.appendTo($('<td/>').appendTo(tr));
+      var mute = $('<button/>').attr('type', 'button')
+            .addClass('btn btn-outline-primary btn-sm')
+            .text('Mute')
+            .appendTo($('<td/>').appendTo(tr));
+      mute.on('click', function() {
+        var tr = $(this).parent().parent();
+        Extension.muted.push(tr.attr('id'));
+        tr.remove();
+      });
       tr.appendTo(table);
     }
   }
