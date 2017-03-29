@@ -11,8 +11,10 @@ import org.json.JSONObject;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Date;
+import java.util.logging.Logger;
 
 public class NotificationServlet extends ApiServlet {
+  private static final Logger log = Logger.getLogger(NotificationServlet.class.getName());
   private NotificationDatastore notificationDatastore = new NotificationDatastore();
 
   @Override
@@ -21,6 +23,9 @@ public class NotificationServlet extends ApiServlet {
     Date oneHourAgo = NotificationServlet.getOneHourAgo();
     if (user.lastUpdated() == null || user.lastUpdated().before(oneHourAgo)) {
       try {
+        log.info(
+          "Requesting notifications for " + user.getUsername() + ", last updated "
+            + user.lastUpdated());
         notificationDatastore.fetchNotifications(user);
       } catch (IOException e) {
         throw new ApiException(e.getMessage());
@@ -35,6 +40,9 @@ public class NotificationServlet extends ApiServlet {
       }
 
       String repository = notification.getRepository();
+      if (!user.trackedRepositories().contains(repository)) {
+        continue;
+      }
       if (!notificationsByRepository.has(repository)) {
         notificationsByRepository.put(repository, new JSONArray());
       }

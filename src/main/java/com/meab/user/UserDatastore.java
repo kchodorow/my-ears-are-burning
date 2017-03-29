@@ -16,6 +16,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -47,6 +48,15 @@ public class UserDatastore {
 
   public void update(User user) {
     datastore.put(user.getEntity());
+  }
+
+  public void addTrackedRepository(User user, String repository) {
+    Entity entity = user.getEntity();
+    ArrayList<String> repos = (ArrayList<String>) entity.getProperty(
+      DatastoreConstants.User.TRACKED_REPOSITORIES);
+    repos.add(repository);
+    entity.setProperty(DatastoreConstants.User.TRACKED_REPOSITORIES, repos);
+    datastore.put(entity);
   }
 
   public void setLastUpdated(User user) {

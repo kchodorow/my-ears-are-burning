@@ -30,7 +30,6 @@ var User = function(id) {
 
 User.prototype.generateList = function() {
   $.getJSON('/api/repositories').done(function(json) {
-    console.log("JSON Data: " + JSON.stringify(json));
     if (!json.ok) {
       // TODO: handle error.
       return;
@@ -40,17 +39,36 @@ User.prototype.generateList = function() {
       .attr('href', '/user/' + json.name)
       .text(json.name);
 
-    $('#next').text("Choose a repository to track.");
-    var div = $('<div/>').addClass('list-group').appendTo($('#next'));
+    var next = $('#next').empty();
+    $('<p/>').text('Choose a repository to track:').appendTo(next);
+    var div = $('<div/>').addClass('list-group').appendTo(next);
     for (var i = 0; i < json.repositories.length; ++i) {
       var repo = json.repositories[i];
-      $('<a/>').attr('href', 'https://github.com/' + repo)
+      var a = $('<a/>').attr('href', '#')
         .addClass('list-group-item list-group-item-action')
-        .text('https://github.com/' + repo)
+        .text('https://github.com/' + repo.name + ' (' + repo.count + ' notifications)')
         .appendTo(div);
+      if (json.tracked.indexOf(repo.name) >= 0) {
+        a.addClass('active');
+      }
+      a.on('click', function() {
+        var elem = this;
+        $.post('/api/repositories', {track : repo.name}).done(function() {
+          $(elem).addClass('active');
+        }).fail(failLogger);
+        return false;
+      });
     }
     $('<div/>').html(
-      'If you\'d like to track more than one repository, please <a href="/subscribe">subscribe</a> to help cover the costs of running this service.').appendTo('#next');
+      'Or enter a different repository: <p>'
+        + 'https://github.com/'
+        + '<input id="repo-user" name="user" type="text" placeholder="User or organization"/>'
+        + '/<input id="repo-repo" name="repo" type="text" placeholder="Repository name"/>'
+        + '<button type="submit">Track</button></p>')
+      .appendTo(next);
+    $('<div/>').html('If you\'d like to track more than one repository, please '
+      + '<a href="/subscribe">subscribe</a> to help cover the costs of '
+      + 'running this service.').appendTo(next);
   }).fail(failLogger);
 };
 
