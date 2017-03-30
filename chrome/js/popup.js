@@ -1,50 +1,13 @@
 /* global $, chrome */
 
 var Extension = {
-  alarm : null,
   URL : 'https://myearsareburning-159618.appspot-preview.com/'
 };
 
-Extension.getNextUpdateSecs = function() {
-  if (Extension.alarm == null) {
-    return null;
-  }
-  var next = Extension.alarm.scheduledTime;
-  var now = new Date().getTime();
-  return Math.ceil((next - now) / 1000);
-};
-
-Extension.noStatus = function() {
-  var title = 'No notifications loaded, yet.';
-  var nextUpdate = Extension.getNextUpdateSecs();
-  if (nextUpdate != null) {
-    title += ' (Next update in ' + nextUpdate + ' seconds.)';
-  }
-  chrome.browserAction.setTitle({title : title});
-  chrome.browserAction.setIcon({path: 'assets/icon.png'});
-};
-
-Extension.caughtUp = function() {
-  chrome.browserAction.setTitle({title : 'All caught up!'});
-  chrome.browserAction.setIcon({path: 'assets/read.png'});
-};
-
-Extension.unread = function(num) {
-  chrome.browserAction.setTitle({title : num + ' unread notifications.'});
-  chrome.browserAction.setIcon({path: 'assets/unread.png'});
-};
-
 var fetchNotifications = function(alarm) {
-  chrome.alarms.get(
-    "update-github-notifications",
-    function(alarm) {
-      Extension.alarm = alarm;
-    }
-  );
   chrome.runtime.sendMessage({get:'notifications'}, receiveNotifications);
 };
 
-chrome.alarms.onAlarm.addListener(fetchNotifications);
 document.addEventListener('DOMContentLoaded', fetchNotifications);
 
 var receiveNotifications = function(response) {
@@ -98,26 +61,18 @@ Popup.API_PREFIX = 'https://api.github.com/repos/';
 Popup.HTML_PREFIX = 'https://github.com/';
 
 Popup.prototype.startup = function() {
-  var nextUpdate = Extension.getNextUpdateSecs();
-  if (nextUpdate == null) {
-    this.div_.text('Still loading...' );
-  } else {
-    this.div_.text('Fetching in ' + nextUpdate + ' seconds.');
-  }
-  Extension.noStatus();
+  this.div_.text('Still loading...' );
 };
 
 Popup.prototype.error = function() {
   this.div_.text(this.response_.message);
-  Extension.noStatus();
 };
 
 Popup.prototype.requesting = function() {
   this.div_.text('Requesting notifications! Please stand by...');
-  Extension.noStatus();
 };
 
-Popup.prototype.loaded = function() {
+Popup.prototype.login = function() {
   var a = $('<a/>').attr('href', '#').text('Please login to get started.');
   a.on('click', function() {
     chrome.tabs.create({url:Extension.URL + 'login'});
@@ -127,15 +82,8 @@ Popup.prototype.loaded = function() {
 };
 
 Popup.prototype.loaded = function() {
-    var notificationMap = this.response_.notifications;
-  if (notificationMap.length == 0) {
-    this.div_.text('All caught up!');
-    Extension.caughtUp();
-    return;
-  }
-
+  var notificationMap = this.response_.notifications;
   var table = $('<table/>').attr('class', 'table table-hover');
-  var count = 0;
   for (var repo in notificationMap) {
     var notifications = notificationMap[repo];
     if (notifications.length == 0) {
@@ -145,16 +93,15 @@ Popup.prototype.loaded = function() {
     for (var i = 0; i < notifications.length; ++i) {
       var notification = notifications[i];
       if (notification.id in this.response_.muted) {
-        // TODO: this could display an empty section.
         continue;
       }
-      count++;
       var reason = Popup.getReasonSymbol(notification.reason);
-      var url = Popup.getUrl(notification.url);
+      let url = Popup.getUrl(notification.url);
       var tr = $('<tr/>').attr('id', notification.id);
       $('<td/>').html(reason).appendTo(tr);
       var a = $('<a/>')
             .attr('href', '#')
+            .attr('title', url)
             .text(notification.title);
       a.on('click', function() {
         chrome.tabs.create({url:url});
@@ -192,7 +139,6 @@ Popup.prototype.loaded = function() {
   }
 
   table.appendTo(this.div_);
-  Extension.unread(count);
 };
 
 Popup.getReasonSymbol = function(reason) {

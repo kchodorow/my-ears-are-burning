@@ -2,7 +2,10 @@
 
 var URL = "https://myearsareburning-159618.appspot-preview.com/";
 
-var response = {
+var BackgroundTask = function() {
+};
+
+BackgroundTask.response = {
   notifications : [],
   state : "startup",
   message : null,
@@ -12,9 +15,9 @@ var response = {
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if ('get' in request && request.get == 'notifications') {
-      sendResponse(response);
+      sendResponse(BackgroundTask.response);
     } else if ('post' in request && request.post == 'mute') {
-      response.muted[request.id] = true;
+      BackgroundTask.response.muted[request.id] = true;
     }
   }
 );
@@ -42,11 +45,11 @@ var updateNotifications = function(alarm) {
 chrome.alarms.onAlarm.addListener(updateNotifications);
 
 function handleLogin() {
-  response.state = "need-login";
+  BackgroundTask.response.state = "need-login";
 }
 
 function pollForNotifications(userId) {
-  response.state = "requesting";
+  BackgroundTask.response.state = "requesting";
   var notificationUrl = URL + 'api/notifications?id=' + userId;
   var x = new XMLHttpRequest();
   x.open('GET', notificationUrl);
@@ -54,16 +57,59 @@ function pollForNotifications(userId) {
   x.onload = function() {
     var githubResponse = x.response;
     if (!githubResponse) {
-      response.state = "error";
-      response.message = 'No response from ' + URL + '!';
+      BackgroundTask.response.state = "error";
+      BackgroundTask.response.message = 'No response from ' + URL + '!';
       return;
     }
-    response.notifications = githubResponse.notifications;
-    response.state = "loaded";
+    BackgroundTask.response.notifications = githubResponse.notifications;
+    BackgroundTask.response.state = "loaded";
+
+    var count = 0;
+    for (var repo in BackgroundTask.response.notifications) {
+      var notifications = BackgroundTask.response.notifications[repo];
+      for (var i = 0; i < notifications.length; ++i) {
+        var notification = notifications[i];
+        if (notification.id in BackgroundTask.response.muted) {
+          continue;
+        }
+        count++;
+      }
+    }
+    BackgroundTask.loaded(count);
   };
   x.onerror = function() {
-    response.state = "error";
-    response.message = 'Network error.';
+    BackgroundTask.response.state = "error";
+    BackgroundTask.response.message = 'Network error.';
+    BackgroundTask.noStatus();
   };
   x.send();
 }
+
+BackgroundTask.getNextUpdateSecs = function() {
+  if (BackgroundTask.response.alarm == null) {
+    return null;
+  }
+  var next = BackgroundTask.response.alarm.scheduledTime;
+  var now = new Date().getTime();
+  return Math.ceil((next - now) / 1000);
+};
+
+BackgroundTask.noStatus = function() {
+  var title = 'No notifications loaded, yet.';
+  var nextUpdate = BackgroundTask.getNextUpdateSecs();
+  if (nextUpdate != null) {
+    title += ' (Next update in ' + nextUpdate + ' seconds.)';
+  }
+  chrome.browserAction.setTitle({title : title});
+  chrome.browserAction.setIcon({path: 'assets/icon.png'});
+};
+
+BackgroundTask.loaded = function(num) {
+  if (num > 0) {
+    chrome.browserAction.setTitle({title : num + ' unread notifications.'});
+    chrome.browserAction.setIcon({path: 'assets/unread.png'});
+  } else {
+    chrome.browserAction.setTitle({title : 'All caught up!'});
+    chrome.browserAction.setIcon({path: 'assets/read.png'});
+  }
+};

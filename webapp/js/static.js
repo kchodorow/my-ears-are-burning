@@ -35,9 +35,11 @@ User.prototype.generateList = function() {
       return;
     }
 
-    $('#login')
+    var login = $('#login')
       .attr('href', '/user/' + json.name)
       .text(json.name);
+    $('<a/>').attr('href', '/logout').text('Log out')
+      .appendTo($('<li/>').appendTo(login.parent()));
 
     var next = $('#next').empty();
     $('<p/>').text('Choose a repository to track:').appendTo(next);
