@@ -47,7 +47,11 @@ public class UserDatastore {
   }
 
   public void update(User user) {
-    datastore.put(user.getEntity());
+    update(user.getEntity());
+  }
+
+  public void update(Entity user) {
+    datastore.put(user);
   }
 
   public void addTrackedRepository(User user, String repository) {

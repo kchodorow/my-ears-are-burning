@@ -17,6 +17,7 @@ public class DatastoreConstants {
     public static final String COOKIE_NAME = "id";
     public static final String TRACKED_REPOSITORIES = "repos";
     public static final String USER_INFO = "user info";
+    public static final String CUSTOMER_ID = "stripe id";
   }
 
   public static class Notifications {

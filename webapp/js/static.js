@@ -4,6 +4,7 @@ var loadFromServer = function() {
   // 1. See if the user is logged in.
   var cookieStr = document.cookie;
   if (!cookieStr) {
+    $('#step-0').removeClass('invisible').addClass('visible');
     return;
   }
   var id = null;
@@ -16,10 +17,12 @@ var loadFromServer = function() {
     }
   }
   if (id == null) {
+    $('#step-0').removeClass('invisible').addClass('visible');
     return;
   }
 
   // 2. The visitor is logged in, give next steps.
+  $('#step-0').remove();
   var user = new User(id);
   user.generateList();
 };
@@ -41,9 +44,8 @@ User.prototype.generateList = function() {
     $('<a/>').attr('href', '/logout').text('Log out')
       .appendTo($('<li/>').appendTo(login.parent().parent()));
 
-    var next = $('#next').empty();
-    $('<p/>').text('Choose a repositories to track:').appendTo(next);
-    var div = $('<div/>').addClass('list-group').appendTo(next);
+    var next = $('#step-1').removeClass('invisible').addClass('visible');
+    var div = $('#step-1-list');
     for (var i = 0; i < json.repositories.length; ++i) {
       var repo = json.repositories[i];
       var a = $('<a/>').attr('href', '#')
@@ -61,23 +63,13 @@ User.prototype.generateList = function() {
         return false;
       });
     }
-    $('<div/>').html(
-      'Or enter a different repository: <p>'
-        + 'https://github.com/'
-        + '<input id="repo-user" name="user" type="text" placeholder="User or organization"/>'
-        + '/<input id="repo-repo" name="repo" type="text" placeholder="Repository name"/>'
-        + '<button type="submit">Track</button></p>')
-      .appendTo(next);
-    $('<div/>').html('<p><em>If you\'d like to track more than one repository, please '
-      + '<a href="/subscribe">subscribe</a> to help cover the costs of '
-      + 'running this service.</em></p>').appendTo(next);
   }).fail(failLogger);
 };
 
 /**
  * Log function for debugging.
  */
-var failLogger = function( jqxhr, textStatus, error ) {
+var failLogger = function(jqxhr, textStatus, error) {
   var err = textStatus + ", " + error;
   console.log( "Request Failed: " + err );
 };

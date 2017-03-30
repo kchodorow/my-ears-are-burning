@@ -38,6 +38,15 @@ maven_jar(
     name = "jsr305",
     artifact = "com.google.code.findbugs:jsr305:3.0.1",
 )
+maven_jar(
+    name = "stripe",
+    artifact = "com.stripe:stripe-java:4.0.0",
+)
+maven_jar(
+    name = "gson",
+    artifact = "com.google.code.gson:gson:2.8.0",
+)
+
 new_http_archive(
     name = "autovalue",
     url = "http://repo1.maven.org/maven2/com/google/auto/value/auto-value/1.3/auto-value-1.3.jar",

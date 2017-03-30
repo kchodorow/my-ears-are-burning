@@ -23,6 +23,10 @@
         <servlet-name>repositories</servlet-name>
         <servlet-class>com.meab.api.RepositoryServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>subscribe</servlet-name>
+        <servlet-class>com.meab.subscriptions.SubscribeServlet</servlet-class>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>oauth</servlet-name>
@@ -43,5 +47,9 @@
     <servlet-mapping>
         <servlet-name>repositories</servlet-name>
         <url-pattern>/api/repositories</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>subscribe</servlet-name>
+        <url-pattern>/subscribe</url-pattern>
     </servlet-mapping>
 </web-app>

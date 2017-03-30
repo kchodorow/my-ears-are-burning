@@ -1,4 +1,4 @@
-package com.meab.oauth;
+package com.meab;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class SecretDatastore extends HttpServlet {
 
-  static final String GITHUB_ID = "github";
+  public static final String GITHUB_ID = "github";
   private static final String STATE_MACHINE_ID = "state machine";
   static final String[] keys = {GITHUB_ID, STATE_MACHINE_ID};
 
@@ -27,7 +27,7 @@ public class SecretDatastore extends HttpServlet {
 
   private final DatastoreService datastore;
 
-  SecretDatastore() {
+  public SecretDatastore() {
     datastore = DatastoreServiceFactory.getDatastoreService();
   }
 

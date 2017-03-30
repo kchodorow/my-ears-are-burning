@@ -1,11 +1,11 @@
 package com.meab.api;
 
 import com.google.common.base.Preconditions;
+import com.meab.servlet.MeabServlet;
+import com.meab.servlet.MeabServletException;
 import com.meab.user.User;
-import com.meab.user.UserDatastore;
 import org.json.JSONObject;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -13,8 +13,7 @@ import java.io.IOException;
 /**
  * Parent class for API servlets.
  */
-public class ApiServlet extends HttpServlet {
-  UserDatastore userDatastore = new UserDatastore();
+public class ApiServlet extends MeabServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -32,29 +31,16 @@ public class ApiServlet extends HttpServlet {
   void apiPost(User user, HttpServletRequest request, JSONObject response) throws ApiException {
   }
 
-  private User getUser(HttpServletRequest request, HttpServletResponse response)
-    throws IOException {
-    String id = User.getIdFromCookie(request);
-    if (id == null) {
-      response.getWriter().write(ApiException.toJsonError("Not logged in."));
-      return null;
-    }
-    User user = userDatastore.getUser(id);
-    if (user == null) {
-      User.unsetCookie(id, response);
-      response.getWriter().write(ApiException.toJsonError("Couldn't find user for " + id));
-      return null;
-    }
-    return user;
-  }
-
   private void getOrPost(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
     Preconditions.checkArgument(
       request.getMethod().equals("GET") || request.getMethod().equals("POST"),
       "Method must be GET or POST (got " + request.getMethod() + ")");
-    User user = getUser(request, response);
-    if (user == null) {
+    User user;
+    try {
+      user = getUser(request, response);
+    } catch (MeabServletException e) {
+      response.getWriter().write(ApiException.toJsonError(e.getMessage()));
       return;
     }
     JSONObject jsonResponse = new JSONObject();

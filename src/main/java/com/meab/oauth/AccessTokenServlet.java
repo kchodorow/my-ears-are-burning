@@ -1,6 +1,7 @@
 package com.meab.oauth;
 
 import com.google.common.base.Strings;
+import com.meab.SecretDatastore;
 import com.meab.user.User;
 import com.meab.user.UserDatastore;
 import org.apache.http.HttpEntity;
@@ -8,12 +9,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -64,7 +63,7 @@ public class AccessTokenServlet extends HttpServlet {
       throw new IOException(e.getMessage());
     }
     user.setCookie(response);
-    response.getWriter().write(user.toString());
+    response.sendRedirect("/");
   }
 
   private String requestToken(String code, String state)

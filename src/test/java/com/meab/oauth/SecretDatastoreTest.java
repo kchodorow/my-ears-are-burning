@@ -1,5 +1,6 @@
 package com.meab.oauth;
 
+import com.meab.SecretDatastore;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
