@@ -95,10 +95,10 @@ Popup.prototype.loaded = function() {
       if (notification.id in this.response_.muted) {
         continue;
       }
-      var reason = Popup.getReasonSymbol(notification.reason);
-      let url = Popup.getUrl(notification.url);
       var tr = $('<tr/>').attr('id', notification.id);
-      $('<td/>').html(reason).appendTo(tr);
+      var reason = Popup.getReasonSymbol(notification.reason);
+      reason.appendTo($('<td/>').appendTo(tr));
+      let url = Popup.getUrl(notification.url);
       var a = $('<a/>')
             .attr('href', '#')
             .attr('title', url)
@@ -142,19 +142,21 @@ Popup.prototype.loaded = function() {
 };
 
 Popup.getReasonSymbol = function(reason) {
+  var div = $('<div/>');
   switch (reason) {
   case "mention":
-    return "@";
+    return div.attr('title', 'Mention').html("@");
   case "state_change":
-    return "&#916;";  // Delta.
+    return div.attr('title', 'State change').html("&#916;");  // Delta.
   case "author":
-    return "&#9997";  // Hand holding pen.
+    // What is this?
+    return div.attr('title', 'Author').html("&#9997");  // Hand holding pen.
   case "comment":
-    return "&#128172";  // Speech bubble.
+    return div.attr('title', 'New comment').html("&#128172");  // Speech bubble.
   case "assign":
-    return '&#8618;';  // Arrow.
+    return div.attr('title', 'Assigned').html('&#8618;');  // Arrow.
   }
-  return "?";
+  return div.html("?");
 };
 
 // There's probably a better way to get these, but so far they seem
