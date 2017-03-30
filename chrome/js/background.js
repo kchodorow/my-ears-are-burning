@@ -35,7 +35,8 @@ var updateNotifications = function(alarm) {
   };
   chrome.cookies.get(cookieDetails, function(cookie) {
     if (cookie == null) {
-      handleLogin();
+      BackgroundTask.response.state = "need-login";
+      return;
     }
     var userId = cookie.value;
     pollForNotifications(userId);
@@ -43,10 +44,6 @@ var updateNotifications = function(alarm) {
 };
 
 chrome.alarms.onAlarm.addListener(updateNotifications);
-
-function handleLogin() {
-  BackgroundTask.response.state = "need-login";
-}
 
 function pollForNotifications(userId) {
   BackgroundTask.response.state = "requesting";

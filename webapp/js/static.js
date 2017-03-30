@@ -39,10 +39,10 @@ User.prototype.generateList = function() {
       .attr('href', '/user/' + json.name)
       .text(json.name);
     $('<a/>').attr('href', '/logout').text('Log out')
-      .appendTo($('<li/>').appendTo(login.parent()));
+      .appendTo($('<li/>').appendTo(login.parent().parent()));
 
     var next = $('#next').empty();
-    $('<p/>').text('Choose a repository to track:').appendTo(next);
+    $('<p/>').text('Choose a repositories to track:').appendTo(next);
     var div = $('<div/>').addClass('list-group').appendTo(next);
     for (var i = 0; i < json.repositories.length; ++i) {
       var repo = json.repositories[i];
@@ -68,9 +68,9 @@ User.prototype.generateList = function() {
         + '/<input id="repo-repo" name="repo" type="text" placeholder="Repository name"/>'
         + '<button type="submit">Track</button></p>')
       .appendTo(next);
-    $('<div/>').html('If you\'d like to track more than one repository, please '
+    $('<div/>').html('<p><em>If you\'d like to track more than one repository, please '
       + '<a href="/subscribe">subscribe</a> to help cover the costs of '
-      + 'running this service.').appendTo(next);
+      + 'running this service.</em></p>').appendTo(next);
   }).fail(failLogger);
 };
 
