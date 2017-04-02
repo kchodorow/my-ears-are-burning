@@ -6,14 +6,18 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.meab.DatastoreConstants;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * User info from GitHub:
@@ -57,9 +61,21 @@ import java.util.Set;
  */
 @AutoValue
 public abstract class User {
+  private static final Logger log = Logger.getLogger(User.class.getName());
 
-  public static User create(String uuid, String accessToken, JSONObject userInfo) {
-    return new AutoValue_User(uuid, accessToken, new Date(0), Sets.<String>newHashSet(), userInfo);
+  // The name that cookies coming from the client are under.
+  // TODO: change this so the value doesn't match the ID field of the user.
+  private static final String COOKIE_NAME = "id";
+
+  public static User create(String accessToken, JSONObject userInfo) throws IOException {
+    try {
+      return new AutoValue_User(
+        userInfo.getInt("id") + "", UUID.randomUUID().toString(), accessToken, new Date(0),
+        Sets.<String>newHashSet(), userInfo);
+    } catch (JSONException e) {
+      log.warning(e.getMessage() + ": " + userInfo.toString());
+      throw new IOException(e.getMessage());
+    }
   }
 
   static User fromEntity(Entity entity) {
@@ -73,8 +89,13 @@ public abstract class User {
         }
       }
     }
+
+    String cookieId = entity.getProperty(DatastoreConstants.User.COOKIE) == null
+      ? UUID.randomUUID().toString()
+      : entity.getProperty(DatastoreConstants.User.COOKIE).toString();
     return new AutoValue_User(
       entity.getKey().getName(),
+      cookieId,
       entity.getProperty(DatastoreConstants.User.ACCESS_TOKEN).toString(),
       (Date) entity.getProperty(DatastoreConstants.User.LAST_UPDATED),
       repos,
@@ -83,6 +104,7 @@ public abstract class User {
 
   public Entity getEntity() {
     Entity entity = new Entity(KeyFactory.createKey(DatastoreConstants.User.DATASTORE, id()));
+    entity.setProperty(DatastoreConstants.User.COOKIE, cookieId());
     entity.setProperty(DatastoreConstants.User.ACCESS_TOKEN, accessToken());
     entity.setProperty(DatastoreConstants.User.LAST_UPDATED, lastUpdated());
     entity.setProperty(
@@ -96,32 +118,33 @@ public abstract class User {
     return userInfo().getString("login");
   }
 
-  public static String getIdFromCookie(HttpServletRequest request) {
+  public static String getCookieId(HttpServletRequest request) {
     Cookie[] cookies = request.getCookies();
     if (cookies == null) {
       return null;
     }
-    String userId = null;
+    String cookieId = null;
     for (Cookie cookie : cookies) {
-      if (cookie.getName().equals(DatastoreConstants.User.USER_ID)) {
-        userId = cookie.getValue();
+      if (cookie.getName().equals(COOKIE_NAME)) {
+        cookieId = cookie.getValue();
       }
     }
-    return userId;
+    return cookieId;
   }
 
   public void setCookie(HttpServletResponse response) {
-    Cookie cookie = new Cookie(DatastoreConstants.User.COOKIE_NAME, id());
-    response.addCookie(cookie);
+    response.addCookie(new Cookie(COOKIE_NAME, cookieId()));
+    response.addCookie(new Cookie("username", getUsername()));
   }
 
-  public static void unsetCookie(String id, HttpServletResponse response) {
-    Cookie cookie = new Cookie(DatastoreConstants.User.COOKIE_NAME, id);
+  public static void unsetCookie(String cookieId, HttpServletResponse response) {
+    Cookie cookie = new Cookie(COOKIE_NAME, cookieId);
     cookie.setMaxAge(0);
     response.addCookie(cookie);
   }
 
   public abstract String id();
+  public abstract String cookieId();
   public abstract String accessToken();
   public abstract Date lastUpdated();
   public abstract Set<String> trackedRepositories();

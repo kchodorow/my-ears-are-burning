@@ -3,9 +3,8 @@ package com.meab.user;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
 import com.meab.DatastoreConstants;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -26,21 +25,34 @@ public class UserDatastore {
 
   private final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-  public User createUser(String accessToken, String uuid) throws IOException {
-    User user = User.create(uuid, accessToken, fetchUserInfo(accessToken));
+  public User createUser(String accessToken) throws IOException {
+    User user = User.create(accessToken, fetchUserInfo(accessToken));
     datastore.put(user.getEntity());
     return user;
   }
 
   public User getUser(String uuid) {
     Entity entity;
+    PreparedQuery pq;
+    Query.Filter propertyFilter =
+      new Query.FilterPredicate(
+        DatastoreConstants.User.COOKIE, Query.FilterOperator.GREATER_THAN_OR_EQUAL, uuid);
+    Query q = new Query(DatastoreConstants.User.DATASTORE).setFilter(propertyFilter);
+    pq = datastore.prepare(q);
     try {
-      entity = datastore.get(getKey(uuid));
-    } catch (EntityNotFoundException e) {
-      log.info("Got uuid " + uuid + " from cookie, but no user found.");
-      return null;
-    }
-    if (entity == null) {
+      entity = pq.asSingleEntity();
+      if (entity == null) {
+        log.info("Got uuid " + uuid + " from cookie, but no user found.");
+        return null;
+      }
+    } catch (PreparedQuery.TooManyResultsException e) {
+      log.warning("Found more than one " + uuid + ".");
+      Iterable<Entity> iterator = pq.asIterable();
+      for (Entity i : iterator) {
+        log.warning("Logging out " + i.getKey() + ".");
+        i.setProperty(DatastoreConstants.User.COOKIE, null);
+        update(i);
+      }
       return null;
     }
     return User.fromEntity(entity);
@@ -67,10 +79,6 @@ public class UserDatastore {
     Entity entity = user.getEntity();
     entity.setProperty(DatastoreConstants.User.LAST_UPDATED, new Date(System.currentTimeMillis()));
     datastore.put(entity);
-  }
-
-  private Key getKey(String uuid) {
-    return KeyFactory.createKey(DatastoreConstants.User.DATASTORE, uuid);
   }
 
   private JSONObject fetchUserInfo(String accessToken) throws IOException {

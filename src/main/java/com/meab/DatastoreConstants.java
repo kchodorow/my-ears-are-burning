@@ -14,10 +14,10 @@ public class DatastoreConstants {
     public static final String USER_ID = "id";
     public static final String LAST_UPDATED = "last updated";
 
-    public static final String COOKIE_NAME = "id";
     public static final String TRACKED_REPOSITORIES = "repos";
     public static final String USER_INFO = "user info";
     public static final String CUSTOMER_ID = "stripe id";
+    public static final String COOKIE = "cookie";
   }
 
   public static class Notifications {

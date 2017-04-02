@@ -15,14 +15,14 @@ public class MeabServlet extends HttpServlet {
 
   protected User getUser(HttpServletRequest request, HttpServletResponse response)
     throws MeabServletException {
-    String id = User.getIdFromCookie(request);
-    if (id == null) {
+    String cookie = User.getCookieId(request);
+    if (cookie == null) {
       throw new MeabServletException("Not logged in");
     }
-    User user = userDatastore.getUser(id);
+    User user = userDatastore.getUser(cookie);
     if (user == null) {
-      User.unsetCookie(id, response);
-      throw new MeabServletException("Couldn't find user for " + id);
+      User.unsetCookie(cookie, response);
+      throw new MeabServletException("Couldn't find user for " + cookie);
     }
     return user;
   }

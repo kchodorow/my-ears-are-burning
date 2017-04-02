@@ -84,6 +84,7 @@ Popup.prototype.login = function() {
 Popup.prototype.loaded = function() {
   var notificationMap = this.response_.notifications;
   var table = $('<table/>').attr('class', 'table table-hover');
+  var total = 0;
   for (var repo in notificationMap) {
     var notifications = notificationMap[repo];
     if (notifications.length == 0) {
@@ -136,9 +137,14 @@ Popup.prototype.loaded = function() {
       }
       tbody.appendTo(table);
     }
+    total += trs.length;
   }
 
-  table.appendTo(this.div_);
+  if (total == 0) {
+    this.div_.text("All caught up!");
+  } else {
+    table.appendTo(this.div_);
+  }
 };
 
 Popup.getReasonSymbol = function(reason) {

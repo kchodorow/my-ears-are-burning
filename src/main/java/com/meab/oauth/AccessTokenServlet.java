@@ -63,7 +63,7 @@ public class AccessTokenServlet extends HttpServlet {
       throw new IOException(e.getMessage());
     }
     user.setCookie(response);
-    response.sendRedirect("/");
+    response.sendRedirect("/user.html");
   }
 
   private String requestToken(String code, String state)
@@ -85,7 +85,7 @@ public class AccessTokenServlet extends HttpServlet {
     return responseContent;
   }
 
-  private User getUser(String responseContent, String userId) throws LoginException {
+  private User getUser(String responseContent, String uuid) throws LoginException {
     String tokens[] = responseContent.split("&");
     String accessToken = null;
     for (String token : tokens) {
@@ -99,16 +99,16 @@ public class AccessTokenServlet extends HttpServlet {
       throw new LoginException("Did not receive access token");
     }
 
-    if (Strings.isNullOrEmpty(userId)) {
+    if (Strings.isNullOrEmpty(uuid)) {
       log.info("state was empty for access token request");
-      userId = UUID.randomUUID().toString();
+      uuid = UUID.randomUUID().toString();
     }
-    User user = userDatastore.getUser(userId);
+    User user = userDatastore.getUser(uuid);
     if (user == null) {
       try {
-        user = userDatastore.createUser(accessToken, userId);
+        user = userDatastore.createUser(accessToken);
       } catch (IOException e) {
-        throw new LoginException("Couldn't create user " + userId + ": " + e.getMessage());
+        throw new LoginException("Couldn't create user " + uuid + ": " + e.getMessage());
       }
     }
     return user;

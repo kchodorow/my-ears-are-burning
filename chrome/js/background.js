@@ -47,7 +47,7 @@ chrome.alarms.onAlarm.addListener(updateNotifications);
 
 function pollForNotifications(userId) {
   BackgroundTask.response.state = "requesting";
-  var notificationUrl = URL + 'api/notifications?id=' + userId;
+  var notificationUrl = URL + 'api/notifications';
   var x = new XMLHttpRequest();
   x.open('GET', notificationUrl);
   x.responseType = 'json';
@@ -55,7 +55,7 @@ function pollForNotifications(userId) {
     var githubResponse = x.response;
     if (!githubResponse) {
       BackgroundTask.response.state = "error";
-      BackgroundTask.response.message = 'No response from ' + URL + '!';
+      BackgroundTask.response.message = 'No response from server.';
       return;
     }
     BackgroundTask.response.notifications = githubResponse.notifications;

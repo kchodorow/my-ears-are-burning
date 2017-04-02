@@ -1,11 +1,7 @@
 package com.meab.api;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.appengine.api.datastore.Entity;
-import com.google.common.collect.ImmutableSet;
-import com.meab.DatastoreConstants;
 import com.meab.notifications.Notification;
 import com.meab.notifications.NotificationDatastore;
 import com.meab.user.User;

@@ -1,34 +1,53 @@
 /* global $ */
 
 var loadFromServer = function() {
-  // 1. See if the user is logged in.
+  if (new CookieParser().isLoggedIn()) {
+    return;
+  }
+
+  $('#step-0').remove();
+  var user = new User();
+  user.generateList();
+};
+
+var loadHeader = function() {
+  var cookieParser = new CookieParser();
+  if (!cookieParser.isLoggedIn()) {
+    return;
+  }
+  var username = cookieParser.get('username');
+  var login = $('#login').text(username);
+  $('<a/>').attr('href', '/logout').text('Log out')
+    .appendTo($('<li/>').appendTo(login.parent().parent()));
+};
+
+var CookieParser = function() {
+  this.id_ = this.get('id');
+  this.loggedIn_ = this.id_ != null;
+};
+
+CookieParser.prototype.isLoggedIn = function() {
+  return this.loggedIn_;
+};
+
+CookieParser.prototype.get = function(cookieId) {
   var cookieStr = document.cookie;
   if (!cookieStr) {
-    $('#step-0').removeClass('invisible').addClass('visible');
-    return;
+    return null;
   }
   var id = null;
   var cookies = cookieStr.split(';');
   for (var i=0; i < cookies.length; ++i) {
-    var cookie = cookies[i];
+    var cookie = cookies[i].trim();
     var crumbs = cookie.split('=');
-    if (crumbs[0] == 'id') {
-      id = crumbs[1];
+    if (crumbs[0] == cookieId) {
+      return crumbs[1];
     }
   }
-  if (id == null) {
-    $('#step-0').removeClass('invisible').addClass('visible');
-    return;
-  }
-
-  // 2. The visitor is logged in, give next steps.
-  $('#step-0').remove();
-  var user = new User(id);
-  user.generateList();
+  return null;
 };
 
-var User = function(id) {
-  this.id_ = id;
+var User = function() {
 };
 
 User.prototype.generateList = function() {
@@ -37,12 +56,6 @@ User.prototype.generateList = function() {
       // TODO: handle error.
       return;
     }
-
-    var login = $('#login')
-      .attr('href', '/user/' + json.name)
-      .text(json.name);
-    $('<a/>').attr('href', '/logout').text('Log out')
-      .appendTo($('<li/>').appendTo(login.parent().parent()));
 
     var next = $('#step-1').removeClass('invisible').addClass('visible');
     var div = $('#step-1-list');
@@ -63,6 +76,8 @@ User.prototype.generateList = function() {
         return false;
       });
     }
+
+    loadHeader();
   }).fail(failLogger);
 };
 

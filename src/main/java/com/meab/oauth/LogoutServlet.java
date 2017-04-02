@@ -12,7 +12,7 @@ public class LogoutServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     for (Cookie cookie : request.getCookies()) {
-      if (cookie.getName().equals(DatastoreConstants.User.COOKIE_NAME)) {
+      if (cookie.getName().equals(DatastoreConstants.User.USER_ID)) {
         cookie.setMaxAge(0);
         response.addCookie(cookie);
         break;

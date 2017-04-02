@@ -20,11 +20,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Handle subscriptions with Stripe.
  */
 public class SubscribeServlet extends MeabServlet {
+  private static final Logger log = Logger.getLogger(SubscribeServlet.class.getName());
 
   private static final String STRIPE_SK_KEY = "stripe";
   private static final String STRIPE_TOKEN = "stripeToken";
@@ -59,20 +61,11 @@ public class SubscribeServlet extends MeabServlet {
     Customer customer;
     try {
       customer = Customer.create(customerParams);
-    } catch (AuthenticationException e) {
-      e.printStackTrace();
-      return;
-    } catch (InvalidRequestException e) {
-      e.printStackTrace();
-      return;
-    } catch (APIConnectionException e) {
-      e.printStackTrace();
-      return;
-    } catch (CardException e) {
-      e.printStackTrace();
-      return;
-    } catch (APIException e) {
-      e.printStackTrace();
+    } catch (AuthenticationException | InvalidRequestException | APIConnectionException
+      | CardException | APIException e) {
+      log.warning(e.getClass().getName() + ": " + e.getMessage() + " for " + stripeEmail
+        + "(" + stripeToken + ")");
+      response.sendRedirect("/subscribe-error.html");
       return;
     }
 

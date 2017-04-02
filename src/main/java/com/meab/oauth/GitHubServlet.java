@@ -1,11 +1,8 @@
 package com.meab.oauth;
 
-import com.google.appengine.api.datastore.Entity;
 import com.google.common.net.UrlEscapers;
 import com.meab.user.User;
-import com.meab.user.UserDatastore;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,9 +30,9 @@ public class GitHubServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
-    String id = User.getIdFromCookie(request);
-    if (id != null) {
-      response.getWriter().write("Logged in: " + id);
+    String cookie = User.getCookieId(request);
+    if (cookie != null) {
+      response.sendRedirect("/user.html");
       return;
     }
 
