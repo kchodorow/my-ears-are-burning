@@ -2,7 +2,14 @@
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    <listener>
+        <listener-class>com.meab.StartupRegistrar</listener-class>
+    </listener>
 
+    <servlet>
+        <servlet-name>index</servlet-name>
+        <servlet-class>com.meab.ui.IndexServlet</servlet-class>
+    </servlet>
     <servlet>
         <servlet-name>oauth</servlet-name>
         <servlet-class>com.meab.oauth.GitHubServlet</servlet-class>
@@ -28,6 +35,10 @@
         <servlet-class>com.meab.subscriptions.SubscribeServlet</servlet-class>
     </servlet>
 
+    <servlet-mapping>
+        <servlet-name>index</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>oauth</servlet-name>
         <url-pattern>/login</url-pattern>

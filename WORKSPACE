@@ -46,6 +46,10 @@ maven_jar(
     name = "gson",
     artifact = "com.google.code.gson:gson:2.8.0",
 )
+maven_jar(
+    name = "freemarker",
+    artifact = "org.freemarker:freemarker-gae:2.3.26-incubating",
+)
 
 new_http_archive(
     name = "autovalue",

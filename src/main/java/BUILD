@@ -5,6 +5,7 @@ java_binary(
         "//src/main/java/com/meab/api",
         "//src/main/java/com/meab/oauth",
         "//src/main/java/com/meab/subscriptions",
+        "//src/main/java/com/meab/ui",
     ],
     visibility = ["//:__pkg__"]
 )
