@@ -7,8 +7,8 @@
     </listener>
 
     <servlet>
-        <servlet-name>index</servlet-name>
-        <servlet-class>com.meab.ui.IndexServlet</servlet-class>
+        <servlet-name>tmpl</servlet-name>
+        <servlet-class>com.meab.ui.UiServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>oauth</servlet-name>
@@ -36,8 +36,12 @@
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>index</servlet-name>
+        <servlet-name>tmpl</servlet-name>
         <url-pattern>/</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>tmpl</servlet-name>
+        <url-pattern>/user</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>oauth</servlet-name>

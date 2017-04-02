@@ -12,25 +12,24 @@
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills pull-right">
-            <li role="presentation" class="active"><a href="/">Home</a></li>
+            <li role="presentation" <#if page == "index.fthl">class="active"</#if>><a href="/">Home</a></li>
             <li role="presentation"><a id="login" href="/login">Login</a></li>
           </ul>
         </nav>
         <h3 class="text-muted">My ears are burning</h3>
       </div>
 
-      <div class="jumbotron">
-        <h1>Thank you for subscribing!</h1>
-        <p class="lead">
-          By default, all GitHub notifications will be shown. To turn off
-          notifications for a repository, visit your
-          <a href="/user">user page</a>.
-        </p>
-        <p>
-          If you haven't yet, now would be a good time to
-          <a href="install">install the extension</a>!
-        </p>
-      </div>
-    </div>
+      <#include "${page}">
+
+      <footer class="footer">
+        <p>&copy; 2017 Kristina Chodorow.</p>
+        <p><a href="/privacy-policy">Privacy policy</a></p>
+      </footer>
+
+      <script>
+        loadHeader();
+      </script>
+
+    </div> <!-- /container -->
   </body>
 </html>
