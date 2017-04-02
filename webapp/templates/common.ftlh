@@ -12,7 +12,7 @@
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills pull-right">
-            <li role="presentation" <#if page == "index.fthl">class="active"</#if>><a href="/">Home</a></li>
+            <li role="presentation" <#if page == "index.ftlh">class="active"</#if>><a href="/">Home</a></li>
             <li role="presentation"><a id="login" href="/login">Login</a></li>
           </ul>
         </nav>
