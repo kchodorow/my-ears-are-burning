@@ -2,6 +2,7 @@ package com.meab.api;
 
 import com.google.common.collect.Maps;
 import com.google.appengine.api.datastore.Entity;
+import com.meab.DatastoreConstants;
 import com.meab.notifications.Notification;
 import com.meab.notifications.NotificationDatastore;
 import com.meab.user.User;
@@ -10,6 +11,7 @@ import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -81,15 +83,25 @@ public class RepositoryServlet extends ApiServlet {
   @Override
   public void apiPost(User user, HttpServletRequest request, JSONObject response)
     throws ApiException {
-    System.out.println("params: " + request.getParameterMap());
-    String repository = request.getParameter("track");
-    Set<String> trackedRepositories = user.trackedRepositories();
-    if (trackedRepositories.size() != 0) {
-      throw new ApiException(
-        "Already tracking " + trackedRepositories.size() + " repositories");
+    String action = request.getParameter("action");
+    String repository = request.getParameter("repo");
+    Entity userEntity = user.getEntity();
+    List<String> repos = (List<String>) userEntity.getProperty(
+      DatastoreConstants.User.TRACKED_REPOSITORIES);
+    if (action.equals("track")) {
+      Integer max = (Integer) user.getEntity().getProperty(DatastoreConstants.User.MAX_REPOS);
+      if (repos.size() >= max) {
+        throw new ApiException(
+          "Already tracking " + repos.size() + " repositories");
+      }
+      if (!repos.contains(repository)) {
+        repos.add(repository);
+      }
+    } else if (action.equals("untrack")) {
+      repos.remove(repository);
     }
 
-    userDatastore.addTrackedRepository(user, repository);
+    userDatastore.update(userEntity);
     response.put("ok", true);
   }
 }

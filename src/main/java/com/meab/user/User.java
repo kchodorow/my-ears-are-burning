@@ -111,6 +111,7 @@ public abstract class User {
       DatastoreConstants.User.TRACKED_REPOSITORIES,
       Lists.newArrayList(trackedRepositories().iterator()));
     entity.setProperty(DatastoreConstants.User.USER_INFO, userInfo().toString());
+    entity.setProperty(DatastoreConstants.User.MAX_REPOS, 1);
     return entity;
   }
 

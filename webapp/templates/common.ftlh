@@ -16,7 +16,7 @@
             <li role="presentation"><a id="login" href="/login">Login</a></li>
           </ul>
         </nav>
-        <h3 class="text-muted">My ears are burning</h3>
+        <h3 class="text-muted"><a href="/">My ears are burning</a></h3>
       </div>
 
       <#include "${page}">

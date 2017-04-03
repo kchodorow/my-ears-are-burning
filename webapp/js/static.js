@@ -7,6 +7,7 @@ var loadFromServer = function() {
   }
 
   $('#username').text(cookieParser.get('username'));
+  $('#login').addClass('active');
   $('#step-0').remove();
   var user = new User();
   user.generateList();
@@ -62,7 +63,7 @@ User.prototype.generateList = function() {
     var next = $('#step-1').removeClass('invisible').addClass('visible');
     var div = $('#step-1-list');
     for (var i = 0; i < json.repositories.length; ++i) {
-      var repo = json.repositories[i];
+      let repo = json.repositories[i];
       var a = $('<a/>').attr('href', '#')
         .addClass('list-group-item list-group-item-action')
         .text('https://github.com/' + repo.name + ' (' + repo.count + ' notifications)')
@@ -72,9 +73,17 @@ User.prototype.generateList = function() {
       }
       a.on('click', function() {
         var elem = this;
-        $.post('/api/repositories', {track : repo.name}).done(function() {
-          $(elem).addClass('active');
-        }).fail(failLogger);
+        if ($(elem).hasClass('active')) {
+          $.post('/api/repositories', {action : 'untrack', repo : repo.name})
+            .done(function() {
+            $(elem).removeClass('active');
+          }).fail(failLogger);
+        } else {
+          $.post('/api/repositories', {action : 'track', repo : repo.name})
+            .done(function() {
+            $(elem).addClass('active');
+          }).fail(failLogger);
+        }
         return false;
       });
     }

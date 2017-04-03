@@ -71,6 +71,7 @@ public class SubscribeServlet extends MeabServlet {
 
     Entity userEntity = user.getEntity();
     userEntity.setProperty(DatastoreConstants.User.CUSTOMER_ID, customer.getId());
+    userEntity.setProperty(DatastoreConstants.User.MAX_REPOS, Integer.MAX_VALUE);
     userDatastore.update(userEntity);
 
     response.sendRedirect("/thank-you");
