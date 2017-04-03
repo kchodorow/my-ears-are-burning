@@ -2,6 +2,7 @@ package com.meab.oauth;
 
 import com.google.common.base.Strings;
 import com.meab.SecretDatastore;
+import com.meab.notifications.NotificationDatastore;
 import com.meab.user.User;
 import com.meab.user.UserDatastore;
 import org.apache.http.HttpEntity;
@@ -38,6 +39,7 @@ public class AccessTokenServlet extends HttpServlet {
 
   private final SecretDatastore secretDatastore = new SecretDatastore();
   private final UserDatastore userDatastore = new UserDatastore();
+  private final NotificationDatastore notificationDatastore = new NotificationDatastore();
   private final String githubSecret;
 
   public AccessTokenServlet() {
@@ -107,6 +109,8 @@ public class AccessTokenServlet extends HttpServlet {
     if (user == null) {
       try {
         user = userDatastore.createUser(accessToken);
+        // Pre-load user notifications.
+        notificationDatastore.fetchNotifications(user);
       } catch (IOException e) {
         throw new LoginException("Couldn't create user " + uuid + ": " + e.getMessage());
       }
