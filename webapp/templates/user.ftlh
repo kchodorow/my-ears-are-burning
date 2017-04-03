@@ -6,7 +6,7 @@
         </div>
       </div>
 
-      <div id="step-1" class="invisible">
+      <div id="step-1">
         <p>Choose repositories to track:</p>
         <div class="list-group" id="step-1-list">
         </div>

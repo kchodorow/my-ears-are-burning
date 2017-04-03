@@ -1,10 +1,12 @@
 /* global $ */
 
 var loadFromServer = function() {
-  if (new CookieParser().isLoggedIn()) {
+  var cookieParser = new CookieParser();
+  if (!cookieParser.isLoggedIn()) {
     return;
   }
 
+  $('#username').text(cookieParser.get('username'));
   $('#step-0').remove();
   var user = new User();
   user.generateList();
@@ -76,8 +78,6 @@ User.prototype.generateList = function() {
         return false;
       });
     }
-
-    loadHeader();
   }).fail(failLogger);
 };
 
