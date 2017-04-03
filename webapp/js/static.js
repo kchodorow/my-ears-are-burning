@@ -60,7 +60,6 @@ User.prototype.generateList = function() {
       return;
     }
 
-    var next = $('#step-1').removeClass('invisible').addClass('visible');
     var div = $('#step-1-list');
     for (var i = 0; i < json.repositories.length; ++i) {
       let repo = json.repositories[i];

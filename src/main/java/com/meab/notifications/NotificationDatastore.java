@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -28,6 +29,8 @@ public class NotificationDatastore {
   private static final Logger log = Logger.getLogger(NotificationDatastore.class.getName());
 
   private static final String USER_URL = "https://api.github.com/notifications";
+  private static final List<String> STUPID_REASONS = ImmutableList.<String>builder()
+    .add("invitation").add("author").add("state_change").build();
 
   private final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
   private final UserDatastore userDatastore = new UserDatastore();
@@ -49,7 +52,7 @@ public class NotificationDatastore {
     ImmutableList.Builder<Entity> builder = ImmutableList.builder();
     for (int i = 0; i < notifications.length(); ++i) {
       JSONObject jsonObject = notifications.getJSONObject(i);
-      if (jsonObject.get("reason").equals("invitation")) {
+      if (STUPID_REASONS.contains(jsonObject.getString("reason"))) {
         continue;
       }
       Entity notification = new Notification(jsonObject).getEntity();

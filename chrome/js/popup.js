@@ -151,16 +151,15 @@ Popup.getReasonSymbol = function(reason) {
   var div = $('<div/>');
   switch (reason) {
   case "mention":
-    return div.attr('title', 'Mention').html("@");
+    return div.attr('title', 'Mention').html('@');
   case "state_change":
-    return div.attr('title', 'State change').html("&#916;");  // Delta.
-  case "author":
-    // What is this?
-    return div.attr('title', 'Author').html("&#9997");  // Hand holding pen.
+    return div.attr('title', 'State change').html('&#916;');  // Delta.
   case "comment":
-    return div.attr('title', 'New comment').html("&#128172");  // Speech bubble.
+    return div.attr('title', 'New comment').html('&#128172;');  // Speech bubble.
   case "assign":
     return div.attr('title', 'Assigned').html('&#8618;');  // Arrow.
+  case "review_requested":
+    return div.attr('title', 'Code review').html('&#128591;'); // Prayer.
   }
   return div.html("?");
 };
