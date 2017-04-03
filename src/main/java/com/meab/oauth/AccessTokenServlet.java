@@ -63,7 +63,7 @@ public class AccessTokenServlet extends HttpServlet {
       throw new IOException(e.getMessage());
     }
     user.setCookie(response);
-    response.sendRedirect("/user.html");
+    response.sendRedirect("/user");
   }
 
   private String requestToken(String code, String state)

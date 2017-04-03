@@ -16,7 +16,7 @@ var loadHeader = function() {
     return;
   }
   var username = cookieParser.get('username');
-  var login = $('#login').text(username);
+  var login = $('#login').attr('href', '/user').text(username);
   $('<a/>').attr('href', '/logout').text('Log out')
     .appendTo($('<li/>').appendTo(login.parent().parent()));
 };

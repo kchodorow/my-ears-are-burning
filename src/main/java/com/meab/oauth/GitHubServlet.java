@@ -32,7 +32,7 @@ public class GitHubServlet extends HttpServlet {
     throws IOException {
     String cookie = User.getCookieId(request);
     if (cookie != null) {
-      response.sendRedirect("/user.html");
+      response.sendRedirect("/user");
       return;
     }
 

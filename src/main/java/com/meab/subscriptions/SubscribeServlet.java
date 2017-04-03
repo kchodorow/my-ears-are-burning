@@ -46,7 +46,7 @@ public class SubscribeServlet extends MeabServlet {
     try {
       user = getUser(request, response);
     } catch (MeabServletException e) {
-      response.sendRedirect("/signup-auth-error.html");
+      response.sendRedirect("/signup-auth-error");
       return;
     }
 
@@ -65,7 +65,7 @@ public class SubscribeServlet extends MeabServlet {
       | CardException | APIException e) {
       log.warning(e.getClass().getName() + ": " + e.getMessage() + " for " + stripeEmail
         + "(" + stripeToken + ")");
-      response.sendRedirect("/subscribe-error.html");
+      response.sendRedirect("/subscribe-error");
       return;
     }
 
@@ -73,6 +73,6 @@ public class SubscribeServlet extends MeabServlet {
     userEntity.setProperty(DatastoreConstants.User.CUSTOMER_ID, customer.getId());
     userDatastore.update(userEntity);
 
-    response.sendRedirect("/thank-you.html");
+    response.sendRedirect("/thank-you");
   }
 }
