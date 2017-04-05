@@ -71,7 +71,7 @@ public abstract class User {
     try {
       return new AutoValue_User(
         userInfo.getInt("id") + "", UUID.randomUUID().toString(), accessToken, new Date(0),
-        Sets.<String>newHashSet(), userInfo);
+        Sets.<String>newHashSet(), userInfo, 1, new JSONObject());
     } catch (JSONException e) {
       log.warning(e.getMessage() + ": " + userInfo.toString());
       throw new IOException(e.getMessage());
@@ -93,13 +93,19 @@ public abstract class User {
     String cookieId = entity.getProperty(DatastoreConstants.User.COOKIE) == null
       ? UUID.randomUUID().toString()
       : entity.getProperty(DatastoreConstants.User.COOKIE).toString();
+    int maxRepos = ((Long) entity.getProperty(DatastoreConstants.User.MAX_REPOS)).intValue();
+    JSONObject subscriptionInfo = entity.hasProperty(DatastoreConstants.User.SUBSCRIPTION_INFO)
+      ? new JSONObject(entity.getProperty(DatastoreConstants.User.SUBSCRIPTION_INFO))
+      : new JSONObject();
     return new AutoValue_User(
       entity.getKey().getName(),
       cookieId,
       entity.getProperty(DatastoreConstants.User.ACCESS_TOKEN).toString(),
       (Date) entity.getProperty(DatastoreConstants.User.LAST_UPDATED),
       repos,
-      new JSONObject(entity.getProperty(DatastoreConstants.User.USER_INFO).toString()));
+      new JSONObject(entity.getProperty(DatastoreConstants.User.USER_INFO).toString()),
+      maxRepos,
+      subscriptionInfo);
   }
 
   public Entity getEntity() {
@@ -111,7 +117,8 @@ public abstract class User {
       DatastoreConstants.User.TRACKED_REPOSITORIES,
       Lists.newArrayList(trackedRepositories().iterator()));
     entity.setProperty(DatastoreConstants.User.USER_INFO, userInfo().toString());
-    entity.setProperty(DatastoreConstants.User.MAX_REPOS, 1);
+    entity.setProperty(DatastoreConstants.User.MAX_REPOS, maxRepositories());
+    entity.setProperty(DatastoreConstants.User.SUBSCRIPTION_INFO, subscriptionInfo().toString());
     return entity;
   }
 
@@ -150,6 +157,8 @@ public abstract class User {
   public abstract Date lastUpdated();
   public abstract Set<String> trackedRepositories();
   public abstract JSONObject userInfo();
+  public abstract int maxRepositories();
+  public abstract JSONObject subscriptionInfo();
 
   public String getLastUpdated() {
     return DatastoreConstants.GITHUB_DATE_FORMAT.format(lastUpdated());

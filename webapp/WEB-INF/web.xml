@@ -34,6 +34,10 @@
         <servlet-name>subscribe</servlet-name>
         <servlet-class>com.meab.subscriptions.SubscribeServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>unsubscribe</servlet-name>
+        <servlet-class>com.meab.subscriptions.UnsubscribeServlet</servlet-class>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>tmpl</servlet-name>
@@ -83,5 +87,9 @@
     <servlet-mapping>
         <servlet-name>subscribe</servlet-name>
         <url-pattern>/subscribe</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>unsubscribe</servlet-name>
+        <url-pattern>/unsubscribe</url-pattern>
     </servlet-mapping>
 </web-app>

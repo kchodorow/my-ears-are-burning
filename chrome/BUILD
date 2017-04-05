@@ -1,7 +1,7 @@
 load("//chrome:extension.bzl", "chrome_extension")
 
 chrome_extension(
-    name = "my-ears-are-burning",
+    name = "chrome",
     srcs = glob([
         "js/*.js",
         "assets/*",

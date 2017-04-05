@@ -86,6 +86,16 @@ User.prototype.generateList = function() {
         return false;
       });
     }
+
+    if (json.subscribed) {
+      var unsubscribe = $('<button/>').text('Unsubscribe');
+      unsubscribe.on('click', function() {
+        $.getJSON('/unsubscribe', function() {
+          $('#subscribe').text('Sorry to see you go!');
+        });
+      });
+      $('#subscribe').empty().append(unsubscribe);
+    }
   }).fail(failLogger);
 };
 

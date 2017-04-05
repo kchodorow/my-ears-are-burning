@@ -19,6 +19,7 @@ public class DatastoreConstants {
     public static final String CUSTOMER_ID = "stripe id";
     public static final String COOKIE = "cookie";
     public static final String MAX_REPOS = "max repos";
+    public static final String SUBSCRIPTION_INFO = "subscription";
   }
 
   public static class Notifications {

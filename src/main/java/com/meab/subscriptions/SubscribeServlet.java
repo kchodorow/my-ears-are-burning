@@ -8,7 +8,6 @@ import com.meab.SecretDatastore;
 import com.meab.servlet.MeabServlet;
 import com.meab.servlet.MeabServletException;
 import com.meab.user.User;
-import com.stripe.Stripe;
 import com.stripe.exception.APIConnectionException;
 import com.stripe.exception.APIException;
 import com.stripe.exception.AuthenticationException;
@@ -25,20 +24,12 @@ import java.util.logging.Logger;
 /**
  * Handle subscriptions with Stripe.
  */
-public class SubscribeServlet extends MeabServlet {
+public class SubscribeServlet extends SubscriptionServlet {
   private static final Logger log = Logger.getLogger(SubscribeServlet.class.getName());
 
-  private static final String STRIPE_SK_KEY = "stripe";
   private static final String STRIPE_TOKEN = "stripeToken";
   private static final String STRIPE_EMAIL = "stripeEmail";
   private static final String SUBSCRIPTION_ID = "meab";
-
-  public SubscribeServlet() {
-    SecretDatastore secretDatastore = new SecretDatastore();
-    String apiKey = secretDatastore.get(STRIPE_SK_KEY);
-    Preconditions.checkNotNull(apiKey, "Stripe API key not found in DB with key " + STRIPE_SK_KEY);
-    Stripe.apiKey = apiKey;
-  }
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {

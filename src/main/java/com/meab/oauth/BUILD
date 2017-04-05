@@ -8,6 +8,7 @@ java_library(
     deps = [
         "//src/main/java/com/meab",
         "//src/main/java/com/meab/notifications",
+        "//src/main/java/com/meab/servlet",
         "//src/main/java/com/meab/user",
         "@com_google_appengine_java//:api",
         "@apache_httpclient//jar",

@@ -15,7 +15,6 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -66,15 +65,6 @@ public class UserDatastore {
     datastore.put(user);
   }
 
-  public void addTrackedRepository(User user, String repository) {
-    Entity entity = user.getEntity();
-    ArrayList<String> repos = (ArrayList<String>) entity.getProperty(
-      DatastoreConstants.User.TRACKED_REPOSITORIES);
-    repos.add(repository);
-    entity.setProperty(DatastoreConstants.User.TRACKED_REPOSITORIES, repos);
-    datastore.put(entity);
-  }
-
   public void setLastUpdated(User user) {
     Entity entity = user.getEntity();
     entity.setProperty(DatastoreConstants.User.LAST_UPDATED, new Date(System.currentTimeMillis()));
@@ -90,5 +80,9 @@ public class UserDatastore {
     String body = EntityUtils.toString(entity, "UTF-8");
     EntityUtils.consumeQuietly(entity);
     return new JSONObject(body);
+  }
+
+  public void delete(User user) {
+    datastore.delete(user.getEntity().getKey());
   }
 }

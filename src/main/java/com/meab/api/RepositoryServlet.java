@@ -59,6 +59,7 @@ public class RepositoryServlet extends ApiServlet {
     }
 
     response.put("ok", true);
+    response.put("subscribed", user.maxRepositories() > 1);
     response.put("repositories", repositories);
     response.put("tracked", tracked);
     response.put("name", user.userInfo().getString("login"));
