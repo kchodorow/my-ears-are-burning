@@ -9,7 +9,9 @@ var loadFromServer = function() {
   $('#username').text(cookieParser.get('username'));
   $('#login').addClass('active');
   $('#delete-account').on('click', function() {
-    location.href = '/delete';
+    $.get('/delete', function() {
+      location.href = '/';
+    });
   });
   var user = new User();
   user.generateList();
