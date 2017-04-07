@@ -38,6 +38,10 @@
         <servlet-name>unsubscribe</servlet-name>
         <servlet-class>com.meab.subscriptions.UnsubscribeServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>delete</servlet-name>
+        <servlet-class>com.meab.oauth.DeleteServlet</servlet-class>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>tmpl</servlet-name>
@@ -75,6 +79,10 @@
     <servlet-mapping>
         <servlet-name>token</servlet-name>
         <url-pattern>/github</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>delete</servlet-name>
+        <url-pattern>/delete</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>notifications</servlet-name>

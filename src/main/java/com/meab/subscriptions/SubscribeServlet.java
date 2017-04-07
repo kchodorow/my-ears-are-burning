@@ -1,6 +1,7 @@
 package com.meab.subscriptions;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Text;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.meab.DatastoreConstants;
@@ -61,10 +62,10 @@ public class SubscribeServlet extends SubscriptionServlet {
     }
 
     Entity userEntity = user.getEntity();
-    userEntity.setProperty(DatastoreConstants.User.CUSTOMER_ID, customer.getId());
+    userEntity.setProperty(DatastoreConstants.User.SUBSCRIPTION_INFO, new Text(customer.toJson()));
     userEntity.setProperty(DatastoreConstants.User.MAX_REPOS, Integer.MAX_VALUE);
     userDatastore.update(userEntity);
 
-    response.sendRedirect("/thank-you");
+    response.sendRedirect("/user?msg=thank-you");
   }
 }

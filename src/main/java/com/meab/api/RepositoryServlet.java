@@ -82,8 +82,7 @@ public class RepositoryServlet extends ApiServlet {
    * Adds or removes a repository from the user's "tracked" list.
    */
   @Override
-  public void apiPost(User user, HttpServletRequest request, JSONObject response)
-    throws ApiException {
+  public void apiPost(User user, HttpServletRequest request, JSONObject response) {
     String action = request.getParameter("action");
     String repository = request.getParameter("repo");
     Entity userEntity = user.getEntity();
@@ -92,8 +91,7 @@ public class RepositoryServlet extends ApiServlet {
     if (action.equals("track")) {
       Integer max = (Integer) user.getEntity().getProperty(DatastoreConstants.User.MAX_REPOS);
       if (repos.size() >= max) {
-        throw new ApiException(
-          "Already tracking " + repos.size() + " repositories");
+        repos.clear();
       }
       if (!repos.contains(repository)) {
         repos.add(repository);
@@ -101,8 +99,13 @@ public class RepositoryServlet extends ApiServlet {
     } else if (action.equals("untrack")) {
       repos.remove(repository);
     }
-
     userDatastore.update(userEntity);
+
+    JSONArray tracking = new JSONArray();
+    for (String repo : repos) {
+      tracking.put(repo);
+    }
+    response.put("tracked", tracking);
     response.put("ok", true);
   }
 }

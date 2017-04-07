@@ -15,13 +15,14 @@ public class DeleteServlet extends MeabServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
     throws IOException {
-    User user = null;
+    User user;
     try {
       user = getUser(request, response);
     } catch (MeabServletException e) {
       log.warning(e.getMessage());
       return;
     }
+    // TODO: logout, cancel subscription.
     userDatastore.delete(user);
   }
 }

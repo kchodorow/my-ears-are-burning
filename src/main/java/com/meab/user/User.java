@@ -2,6 +2,7 @@ package com.meab.user;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Text;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -95,15 +96,18 @@ public abstract class User {
       : entity.getProperty(DatastoreConstants.User.COOKIE).toString();
     int maxRepos = ((Long) entity.getProperty(DatastoreConstants.User.MAX_REPOS)).intValue();
     JSONObject subscriptionInfo = entity.hasProperty(DatastoreConstants.User.SUBSCRIPTION_INFO)
-      ? new JSONObject(entity.getProperty(DatastoreConstants.User.SUBSCRIPTION_INFO))
+      ? new JSONObject(((Text) entity.getProperty(DatastoreConstants.User.SUBSCRIPTION_INFO))
+        .getValue())
       : new JSONObject();
+    String userInfo = ((Text) entity.getProperty(DatastoreConstants.User.USER_INFO)).getValue();
+    System.out.println("user: " + userInfo);
     return new AutoValue_User(
       entity.getKey().getName(),
       cookieId,
       entity.getProperty(DatastoreConstants.User.ACCESS_TOKEN).toString(),
       (Date) entity.getProperty(DatastoreConstants.User.LAST_UPDATED),
       repos,
-      new JSONObject(entity.getProperty(DatastoreConstants.User.USER_INFO).toString()),
+      new JSONObject(userInfo),
       maxRepos,
       subscriptionInfo);
   }
@@ -116,9 +120,11 @@ public abstract class User {
     entity.setProperty(
       DatastoreConstants.User.TRACKED_REPOSITORIES,
       Lists.newArrayList(trackedRepositories().iterator()));
-    entity.setProperty(DatastoreConstants.User.USER_INFO, userInfo().toString());
+    entity.setProperty(
+      DatastoreConstants.User.USER_INFO, new Text(userInfo().toString()));
     entity.setProperty(DatastoreConstants.User.MAX_REPOS, maxRepositories());
-    entity.setProperty(DatastoreConstants.User.SUBSCRIPTION_INFO, subscriptionInfo().toString());
+    entity.setProperty(
+      DatastoreConstants.User.SUBSCRIPTION_INFO, new Text(subscriptionInfo().toString()));
     return entity;
   }
 

@@ -8,7 +8,9 @@ var loadFromServer = function() {
 
   $('#username').text(cookieParser.get('username'));
   $('#login').addClass('active');
-  $('#step-0').remove();
+  $('#delete-account').on('click', function() {
+    location.href = '/delete';
+  });
   var user = new User();
   user.generateList();
 };
@@ -60,32 +62,29 @@ User.prototype.generateList = function() {
       return;
     }
 
-    var div = $('#step-1-list');
+    var div = $('#tracking-list');
     for (var i = 0; i < json.repositories.length; ++i) {
       let repo = json.repositories[i];
-      var a = $('<a/>').attr('href', '#')
-        .addClass('list-group-item list-group-item-action')
-        .text('https://github.com/' + repo.name + ' (' + repo.count + ' notifications)')
-        .appendTo(div);
-      if (json.tracked.indexOf(repo.name) >= 0) {
-        a.addClass('active');
-      }
+      var a = $('<a/>')
+            .attr('id', User._getRepoId(repo.name))
+            .attr('href', '#')
+            .addClass('list-group-item list-group-item-action')
+            .text('https://github.com/' + repo.name + ' (' + repo.count + ' notifications)')
+            .appendTo(div);
       a.on('click', function() {
         var elem = this;
-        if ($(elem).hasClass('active')) {
-          $.post('/api/repositories', {action : 'untrack', repo : repo.name})
-            .done(function() {
-            $(elem).removeClass('active');
-          }).fail(failLogger);
-        } else {
-          $.post('/api/repositories', {action : 'track', repo : repo.name})
-            .done(function() {
-            $(elem).addClass('active');
-          }).fail(failLogger);
-        }
+        var request = {
+          action : $(elem).hasClass('active') ? 'untrack' : 'track',
+          repo : repo.name
+        };
+        $.post('/api/repositories', request)
+          .done(User.updateTracked)
+          .fail(failLogger);
         return false;
       });
     }
+
+    User.updateTracked(json);
 
     if (json.subscribed) {
       var unsubscribe = $('<button/>').text('Unsubscribe');
@@ -97,6 +96,21 @@ User.prototype.generateList = function() {
       $('#subscribe').empty().append(unsubscribe);
     }
   }).fail(failLogger);
+};
+
+User.updateTracked = function(json) {
+  var list = $('#tracking-list');
+  list.children().each(function() {
+    $(this).removeClass('active');
+  });
+  for (var i = 0; i < json.tracked.length; ++i) {
+    var repoId = User._getRepoId(json.tracked[i]);
+    $('#' + repoId).addClass('active');
+  }
+};
+
+User._getRepoId = function(repo) {
+  return 'repo-' + repo.replace(/\//g, '-');
 };
 
 /**

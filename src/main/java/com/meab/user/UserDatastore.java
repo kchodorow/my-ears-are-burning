@@ -3,6 +3,7 @@ package com.meab.user;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.meab.DatastoreConstants;
@@ -83,6 +84,11 @@ public class UserDatastore {
   }
 
   public void delete(User user) {
-    datastore.delete(user.getEntity().getKey());
+    Entity entity = user.getEntity();
+    Entity deleted = new Entity(KeyFactory.createKey("Deleted Users", user.id()));
+    deleted.setPropertiesFrom(entity);
+    System.out.println("Setting " + entity.getKey() + " to " + deleted.getKey());
+    datastore.put(deleted);
+    datastore.delete(entity.getKey());
   }
 }

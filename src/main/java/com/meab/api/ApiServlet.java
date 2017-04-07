@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.meab.servlet.MeabServlet;
 import com.meab.servlet.MeabServletException;
 import com.meab.user.User;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
@@ -52,6 +53,9 @@ public class ApiServlet extends MeabServlet {
       }
     } catch (ApiException e) {
       e.toJson(jsonResponse);
+    } catch (JSONException e) {
+      System.out.println(e.getMessage());
+      e.printStackTrace();
     }
     response.setContentType("application/json");
     response.getWriter().write(jsonResponse.toString());
