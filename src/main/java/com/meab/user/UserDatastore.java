@@ -87,7 +87,6 @@ public class UserDatastore {
     Entity entity = user.getEntity();
     Entity deleted = new Entity(KeyFactory.createKey("Deleted Users", user.id()));
     deleted.setPropertiesFrom(entity);
-    System.out.println("Setting " + entity.getKey() + " to " + deleted.getKey());
     datastore.put(deleted);
     datastore.delete(entity.getKey());
   }

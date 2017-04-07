@@ -100,7 +100,6 @@ public abstract class User {
         .getValue())
       : new JSONObject();
     String userInfo = ((Text) entity.getProperty(DatastoreConstants.User.USER_INFO)).getValue();
-    System.out.println("user: " + userInfo);
     return new AutoValue_User(
       entity.getKey().getName(),
       cookieId,

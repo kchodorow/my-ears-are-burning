@@ -16,8 +16,6 @@ public class StartupRegistrar implements ServletContextListener {
     try {
       freemarkerConfig.setDirectoryForTemplateLoading(new File("templates"));
     } catch (IOException e) {
-      System.out.println("PWD: " + System.getenv("PWD"));
-      e.printStackTrace();
       throw new RuntimeException(e.getMessage());
     }
     freemarkerConfig.setDefaultEncoding("UTF-8");

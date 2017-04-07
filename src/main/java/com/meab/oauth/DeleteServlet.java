@@ -1,8 +1,17 @@
 package com.meab.oauth;
 
+import com.google.appengine.api.datastore.Entity;
+import com.google.common.collect.ImmutableMap;
+import com.meab.DatastoreConstants;
 import com.meab.servlet.MeabServlet;
 import com.meab.servlet.MeabServletException;
 import com.meab.user.User;
+import com.stripe.exception.APIConnectionException;
+import com.stripe.exception.APIException;
+import com.stripe.exception.AuthenticationException;
+import com.stripe.exception.CardException;
+import com.stripe.exception.InvalidRequestException;
+import com.stripe.model.Subscription;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,8 +22,7 @@ public class DeleteServlet extends MeabServlet {
   private static final Logger log = Logger.getLogger(DeleteServlet.class.getName());
 
   @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws IOException {
+  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     User user;
     try {
       user = getUser(request, response);
@@ -22,7 +30,16 @@ public class DeleteServlet extends MeabServlet {
       log.warning(e.getMessage());
       return;
     }
-    // TODO: logout, cancel subscription.
+    User.unsetCookie(user.cookieId(), response);
+    try {
+      if (user.subscriptionInfo().has("id")) {
+        Subscription.retrieve(user.subscriptionInfo().getString("id"))
+          .cancel(ImmutableMap.<String, Object>of());
+      }
+    } catch (AuthenticationException | InvalidRequestException | APIConnectionException |
+      CardException | APIException e) {
+      log.warning(e.getMessage());
+    }
     userDatastore.delete(user);
   }
 }

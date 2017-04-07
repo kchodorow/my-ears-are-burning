@@ -63,6 +63,7 @@ User.prototype.generateList = function() {
     }
 
     var div = $('#tracking-list');
+    div.empty();
     for (var i = 0; i < json.repositories.length; ++i) {
       let repo = json.repositories[i];
       var a = $('<a/>')
