@@ -10,7 +10,7 @@ var loadFromServer = function() {
   $('#login').addClass('active');
   $('#delete-account').on('click', function() {
     $.get('/delete', function() {
-      location.href = '/';
+      location.href = '/good-bye';
     });
   });
   var user = new User();

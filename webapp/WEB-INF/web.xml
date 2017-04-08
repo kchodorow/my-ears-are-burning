@@ -67,6 +67,10 @@
         <servlet-name>tmpl</servlet-name>
         <url-pattern>/signup-auth-error</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>tmpl</servlet-name>
+        <url-pattern>/good-bye</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>oauth</servlet-name>
