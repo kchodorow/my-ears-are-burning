@@ -44,63 +44,63 @@ import java.util.logging.Logger;
 public class Notification {
   private static final Logger log = Logger.getLogger(Notification.class.getName());
 
+  private final Entity entity;
   private final JSONObject object;
 
-  public Notification(JSONObject jsonObject) {
-    this.object = jsonObject;
+  private Notification(Entity entity, JSONObject object) {
+    this.entity = entity;
+    this.object = object;
   }
 
-  public static Notification fromEntity(Entity entity) {
-    Text fullText = (Text) entity.getProperty(DatastoreConstants.Notifications.FULL_TEXT);
-    if (fullText == null) {
-      log.warning("No text for " + entity);
-      return null;
-    }
-    JSONObject object;
-    try {
-      object = new JSONObject(fullText.getValue());
-    } catch (JSONException e) {
-      log.warning(e.getMessage() + " entity: " + fullText.getValue());
-      return null;
-    }
-    return new Notification(object);
-  }
-
-  public Entity getEntity() {
+  public static Notification createFromGitHubResponse(JSONObject object) {
     Key key = KeyFactory.createKey(
       DatastoreConstants.Notifications.DATASTORE, object.getString("id"));
     Entity entity = new Entity(key);
-    entity.setProperty("unread", object.getBoolean("unread"));
+    // NB: GitHub uses a negative boolean field (tsk) so we reverse it here.
+    entity.setProperty("done", !object.getBoolean("unread"));
     entity.setProperty("reason", object.getString("reason"));
-    entity.setProperty("date", getDate());
+    entity.setProperty("date", getDate(object));
     entity.setProperty(DatastoreConstants.Notifications.FULL_TEXT, new Text(object.toString()));
+    return new Notification(entity, object);
+  }
+
+  public static Notification fromEntity(Entity entity) {
+    JSONObject object;
+    try {
+      object = new JSONObject(
+        ((Text) entity.getProperty(DatastoreConstants.Notifications.FULL_TEXT)).getValue());
+    } catch (JSONException e) {
+      log.warning(
+        e.getMessage() + ": "
+          + ((Text) entity.getProperty(DatastoreConstants.Notifications.FULL_TEXT)).getValue());
+      return null;
+    }
+    return new Notification(entity, object);
+  }
+
+  public Entity getEntity() {
     return entity;
   }
 
   public JSONObject getJson() throws InvalidJsonException {
-    try {
-      JSONObject response = new JSONObject();
-      response.put("id", object.getString("id"));
-      response.put("reason", object.getString("reason"));
-      response.put("title", object.getJSONObject("subject").getString("title"));
-      response.put("url", object.getJSONObject("subject").getString("url"));
-      response.put("repository", object.getJSONObject("repository").getString("full_name"));
-      return response;
-    } catch (JSONException e) {
-      log.warning(e.getMessage() + ": " + object.toString());
-      throw new InvalidJsonException("Unable to parse JSON: " + e.getMessage());
-    }
+    JSONObject response = new JSONObject();
+    response.put("id", entity.getKey().getName());
+    response.put("reason", entity.getProperty("reason"));
+    response.put("title", object.getJSONObject("subject").getString("title"));
+    response.put("url", object.getJSONObject("subject").getString("url"));
+    response.put("repository", object.getJSONObject("repository").getString("full_name"));
+    return response;
   }
 
-  public boolean isRead() {
-    return !object.getBoolean("unread");
+  public boolean done() {
+    return (Boolean) entity.getProperty("done");
   }
 
   public String getRepository() {
     return object.getJSONObject("repository").getString("full_name");
   }
 
-  private Date getDate() {
+  private static Date getDate(JSONObject object) {
     String updatedAt = object.getString("updated_at");
     Date date;
     try {

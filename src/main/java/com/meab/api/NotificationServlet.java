@@ -1,6 +1,7 @@
 package com.meab.api;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.meab.DatastoreConstants;
 import com.meab.notifications.Notification;
 import com.meab.notifications.NotificationDatastore;
@@ -33,9 +34,16 @@ public class NotificationServlet extends ApiServlet {
     }
 
     JSONObject notificationsByRepository = new JSONObject();
+    response.put("notifications", notificationsByRepository);
+    response.put("api", DatastoreConstants.API_VERSION);
+    response.put("tracked", user.trackedRepositories().size());
+    if (user.trackedRepositories().size() == 0) {
+      return;
+    }
+
     for (Entity entity : notificationDatastore.getNotifications(user.id())) {
       Notification notification = Notification.fromEntity(entity);
-      if (notification == null || notification.isRead()) {
+      if (notification == null || notification.done()) {
         continue;
       }
 
@@ -52,9 +60,20 @@ public class NotificationServlet extends ApiServlet {
         // Skip this element.
       }
     }
+  }
 
-    response.put("notifications", notificationsByRepository);
-    response.put("api", DatastoreConstants.API_VERSION);
+  @Override
+  public void apiPost(User user, HttpServletRequest request, JSONObject response) {
+    String notificationId = request.getParameter("read");
+    Entity notification;
+    try {
+      notification = notificationDatastore.getNotification(notificationId);
+    } catch (EntityNotFoundException e) {
+      log.warning("Notification not found: " + e.getMessage());
+      return;
+    }
+    notification.setProperty("done", true);
+    notificationDatastore.update(notification);
   }
 
   private static Date getOneHourAgo() {

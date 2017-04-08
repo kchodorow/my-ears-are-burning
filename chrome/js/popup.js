@@ -25,6 +25,9 @@ var receiveNotifications = function(response) {
   case 'need-login':
     popup.login();
     break;
+  case 'need-track':
+    popup.track();
+    break;
   case 'error':
     popup.error();
     break;
@@ -78,6 +81,15 @@ Popup.prototype.login = function() {
   var a = $('<a/>').attr('href', '#').text('Please login to get started.');
   a.on('click', function() {
     chrome.tabs.create({url:Extension.URL + 'login'});
+    return false;
+  });
+  a.appendTo(this.div_);
+};
+
+Popup.prototype.track = function() {
+  var a = $('<a/>').attr('href', '#').text('Please choose a repository to track.');
+  a.on('click', function() {
+    chrome.tabs.create({url:Extension.URL + 'user'});
     return false;
   });
   a.appendTo(this.div_);

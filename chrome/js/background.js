@@ -62,6 +62,11 @@ var pollForNotifications = function(userId) {
     BackgroundTask.response.notifications = githubResponse.notifications;
     BackgroundTask.response.state = "loaded";
 
+    if (githubResponse.tracked == 0) {
+      BackgroundTask.response.state = "need-track";
+      return;
+    }
+
     var count = 0;
     for (var repo in BackgroundTask.response.notifications) {
       var notifications = BackgroundTask.response.notifications[repo];
@@ -85,11 +90,11 @@ var pollForNotifications = function(userId) {
 
 BackgroundTask.mute = function(id) {
   BackgroundTask.response.muted[id] = true;
-  var muteUrl = URL + 'api/mute';
+  var muteUrl = URL + 'api/notifications';
   var x = new XMLHttpRequest();
   x.open('POST', muteUrl);
   x.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-  x.send('id=' + id);
+  x.send('read=' + id);
 };
 
 BackgroundTask.getNextUpdateSecs = function() {

@@ -4,6 +4,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
@@ -57,7 +58,7 @@ public class NotificationDatastore {
       if (STUPID_REASONS.contains(jsonObject.getString("reason"))) {
         continue;
       }
-      Entity notification = new Notification(jsonObject).getEntity();
+      Entity notification = Notification.createFromGitHubResponse(jsonObject).getEntity();
       notification.setProperty(DatastoreConstants.Notifications.USER_ID, user.id());
       builder.add(notification);
     }
@@ -74,8 +75,8 @@ public class NotificationDatastore {
   }
 
   public Entity getNotification(String notificationId) throws EntityNotFoundException {
-    return datastore.get(
-      KeyFactory.createKey(DatastoreConstants.Notifications.DATASTORE, notificationId));
+    Key key = KeyFactory.createKey(DatastoreConstants.Notifications.DATASTORE, notificationId);
+    return datastore.get(key);
   }
 
   public void update(Entity entity) {
