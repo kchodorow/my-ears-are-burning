@@ -19,7 +19,7 @@ public class StartupRegistrar implements ServletContextListener {
       throw new RuntimeException(e.getMessage());
     }
     freemarkerConfig.setDefaultEncoding("UTF-8");
-    freemarkerConfig.setTemplateExceptionHandler(TemplateExceptionHandler.DEBUG_HANDLER);
+    freemarkerConfig.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     freemarkerConfig.setLogTemplateExceptions(false);
   }
 

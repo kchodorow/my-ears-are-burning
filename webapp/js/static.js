@@ -9,7 +9,7 @@ var loadFromServer = function() {
   }
 
   $('#username').text(cookieParser.get('username'));
-  $('#login').addClass('active');
+  $('#login').parent().addClass('active');
   $('#delete-account').on('click', function() {
     $.get('/delete', function() {
       location.href = '/good-bye';
