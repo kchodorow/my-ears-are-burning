@@ -80,6 +80,6 @@ public class SubscribeServlet extends SubscriptionServlet {
     userEntity.setProperty(DatastoreConstants.User.MAX_REPOS, Integer.MAX_VALUE);
     userDatastore.update(userEntity);
 
-    response.sendRedirect("/user?msg=thank-you");
+    response.sendRedirect("/user?msg=subscribe");
   }
 }

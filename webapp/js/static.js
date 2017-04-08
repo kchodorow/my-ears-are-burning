@@ -38,14 +38,26 @@ var checkForMessage = function() {
 
   var query = pieces[1];
   var kv = query.split('=');
-  if (kv[0] == 'msg' && kv[1] == 'thank-you') {
+  if (kv.length != 2 || kv[0] != 'msg') {
+    return;
+  }
+
+  var msg = kv[1];
+  if (msg == 'subscribe') {
     $('#lead').prepend(
       $('<p/>').text(
         'The extension will now automatically track all repositories unless you'
           + ' deselect them below. You can cancel your subscription anytime'
-          + ' with the \'Cancel\' button below.'));
+          + ' with the \'Unsubscribe\' button below.'));
     $('#lead').prepend(
-      $('<h2/>').text('Thank you for subscribing!');
+      $('<h2/>').text('Thank you for subscribing!'));
+  } else if (msg == 'unsubscribe') {
+    $('#lead').prepend(
+      $('<p/>').html(
+        'Please <a href="mailto:k.chodorow@gmail.com">let us know</a> if you'
+          + ' have any feedback you\'d like to share.'));
+    $('#lead').prepend(
+      $('<h2/>').text('Your subscription has been cancelled.'));
   }
 };
 
@@ -113,9 +125,7 @@ User.prototype.generateList = function() {
     if (json.subscribed) {
       var unsubscribe = $('<button/>').text('Unsubscribe');
       unsubscribe.on('click', function() {
-        $.getJSON('/unsubscribe', function() {
-          $('#subscribe').text('Sorry to see you go!');
-        });
+        location.href = '/unsubscribe';
       });
       $('#subscribe').empty().append(unsubscribe);
     }

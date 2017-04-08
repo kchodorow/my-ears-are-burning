@@ -1,6 +1,10 @@
 package com.meab.subscriptions;
 
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Text;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.meab.DatastoreConstants;
 import com.meab.servlet.MeabServletException;
 import com.meab.user.User;
 import com.stripe.exception.APIConnectionException;
@@ -9,6 +13,7 @@ import com.stripe.exception.AuthenticationException;
 import com.stripe.exception.CardException;
 import com.stripe.exception.InvalidRequestException;
 import com.stripe.model.Subscription;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,6 +39,15 @@ public class UnsubscribeServlet extends SubscriptionServlet {
       CardException | APIException e) {
       log.warning(e.getMessage());
     }
-    response.sendRedirect("/good-bye");
+
+    Entity userEntity = user.getEntity();
+    userEntity.setProperty(DatastoreConstants.User.TRACKED_REPOSITORIES, Lists.newArrayList());
+    userEntity.setProperty(
+      DatastoreConstants.User.SUBSCRIPTION_INFO,
+      new Text(new JSONObject().toString()));
+    userEntity.setProperty(DatastoreConstants.User.MAX_REPOS, 1);
+    userDatastore.update(userEntity);
+
+    response.sendRedirect("/user?msg=unsubscribe");
   }
 }

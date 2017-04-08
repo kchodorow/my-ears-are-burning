@@ -11,6 +11,7 @@ java_library(
         "@gson//jar",
         "@guava//jar",
         "@javax_servlet_api//jar",
+        "@json//jar",
         "@stripe//jar",
     ],
 )
