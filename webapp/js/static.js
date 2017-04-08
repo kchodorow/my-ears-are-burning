@@ -1,12 +1,12 @@
 /* global $ */
 
 var loadFromServer = function() {
+  checkForMessage();
+
   var cookieParser = new CookieParser();
   if (!cookieParser.isLoggedIn()) {
     return;
   }
-
-  checkForMessage();
 
   $('#username').text(cookieParser.get('username'));
   $('#login').addClass('active');
@@ -42,8 +42,8 @@ var checkForMessage = function() {
     return;
   }
 
-  var msg = kv[1];
-  if (msg == 'subscribe') {
+  switch (kv[1]) {
+  case 'subscribe':
     $('#lead').prepend(
       $('<p/>').text(
         'The extension will now automatically track all repositories unless you'
@@ -51,13 +51,35 @@ var checkForMessage = function() {
           + ' with the \'Unsubscribe\' button below.'));
     $('#lead').prepend(
       $('<h2/>').text('Thank you for subscribing!'));
-  } else if (msg == 'unsubscribe') {
+    break;
+  case 'unsubscribe':
     $('#lead').prepend(
       $('<p/>').html(
         'Please <a href="mailto:k.chodorow@gmail.com">let us know</a> if you'
           + ' have any feedback you\'d like to share.'));
     $('#lead').prepend(
       $('<h2/>').text('Your subscription has been cancelled.'));
+    break;
+  case 'subscribe-error':
+    $('#lead').prepend(
+      $('<p/>').html('You will not be charged and someone is looking into it.'));
+    $('#lead').prepend(
+      $('<h2/>').text('Something went wrong trying to subscribe.'));
+    break;
+  case 'unsubscribe-error':
+    $('#lead').prepend(
+      $('<p/>').html(
+        'Someone is working on cancelling your subscription manually and you '
+        + ' will be notified as soon as they take care of it.'));
+    $('#lead').prepend(
+      $('<h2/>').text('Something went wrong trying to unsubscribe.'));
+    break;
+  case 'auth-error':
+    $('#lead').prepend(
+      $('<p/>').html('Please <a href="/login">log in</a> and try again.'));
+    $('#lead').prepend(
+      $('<h2/>').text('Authentication error.'));
+    break;
   }
 };
 
@@ -91,9 +113,10 @@ var User = function() {
 };
 
 User.prototype.generateList = function() {
+  $('#tracking-list').text('Loading...');
   $.getJSON('/api/repositories').done(function(json) {
     if (!json.ok) {
-      // TODO: handle error.
+      $('#tracking-list').text("Request Failed: " + json);
       return;
     }
 
@@ -152,5 +175,5 @@ User._getRepoId = function(repo) {
  */
 var failLogger = function(jqxhr, textStatus, error) {
   var err = textStatus + ", " + error;
-  console.log( "Request Failed: " + err );
+  $('#tracking-list').text("Request Failed: " + error);
 };

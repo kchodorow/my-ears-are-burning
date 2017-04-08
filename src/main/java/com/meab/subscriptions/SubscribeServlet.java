@@ -40,7 +40,8 @@ public class SubscribeServlet extends SubscriptionServlet {
     try {
       user = getUser(request, response);
     } catch (MeabServletException e) {
-      response.sendRedirect("/signup-auth-error");
+      log.warning("Auth error during subscribe: " + e.getMessage());
+      response.sendRedirect("/user?msg=auth-error");
       return;
     }
 
@@ -59,7 +60,7 @@ public class SubscribeServlet extends SubscriptionServlet {
       | CardException | APIException e) {
       log.warning(e.getClass().getName() + ": " + e.getMessage() + " for " + stripeEmail
         + "(" + stripeToken + ")");
-      response.sendRedirect("/subscribe-error");
+      response.sendRedirect("/user?msg=subscribe-error");
       return;
     }
 

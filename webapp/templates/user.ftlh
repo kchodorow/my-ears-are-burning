@@ -7,9 +7,7 @@
 
         <div id="step-1">
           <p>Choose repositories to track:</p>
-          <div class="list-group" id="tracking-list">
-          Loading...
-          </div>
+          <div class="list-group" id="tracking-list"></div>
         </div>
 
       <center>

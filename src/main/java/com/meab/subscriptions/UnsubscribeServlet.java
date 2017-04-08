@@ -29,7 +29,8 @@ public class UnsubscribeServlet extends SubscriptionServlet {
     try {
       user = getUser(request, response);
     } catch (MeabServletException e) {
-      log.warning(e.getMessage());
+      log.warning("Auth error during unsubscribe: " + e.getMessage());
+      response.sendRedirect("/user?msg=auth-error");
       return;
     }
     try {
@@ -37,7 +38,9 @@ public class UnsubscribeServlet extends SubscriptionServlet {
         .cancel(ImmutableMap.<String, Object>of());
     } catch (AuthenticationException | InvalidRequestException | APIConnectionException |
       CardException | APIException e) {
-      log.warning(e.getMessage());
+      log.warning("Error unsubscribing: " + e.getMessage());
+      response.sendRedirect("/user?msg=unsubscribe-error");
+      return;
     }
 
     Entity userEntity = user.getEntity();
