@@ -18,7 +18,6 @@ var receiveNotifications = function(response) {
   }
 
   var popup = new Popup(response);
-  console.log("response: " +response.state);
   switch (response.state) {
   case 'startup':
     popup.startup();
@@ -114,7 +113,7 @@ Popup.prototype.loaded = function() {
       a.appendTo($('<td/>').appendTo(tr));
       var mute = $('<button/>').attr('type', 'button')
             .addClass('btn btn-outline-primary btn-sm')
-            .text('Mute')
+            .text('Done')
             .appendTo($('<td/>').appendTo(tr));
       mute.on('click', function() {
         var tr = $(this).parent().parent();

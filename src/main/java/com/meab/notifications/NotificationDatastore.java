@@ -3,6 +3,8 @@ package com.meab.notifications;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.common.collect.ImmutableList;
@@ -69,5 +71,14 @@ public class NotificationDatastore {
     Query query = new Query(DatastoreConstants.Notifications.DATASTORE).setFilter(predicate);
     PreparedQuery preparedQuery = datastore.prepare(query);
     return preparedQuery.asIterable();
+  }
+
+  public Entity getNotification(String notificationId) throws EntityNotFoundException {
+    return datastore.get(
+      KeyFactory.createKey(DatastoreConstants.Notifications.DATASTORE, notificationId));
+  }
+
+  public void update(Entity entity) {
+    datastore.put(entity);
   }
 }

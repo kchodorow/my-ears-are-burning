@@ -18,7 +18,7 @@ chrome.runtime.onMessage.addListener(
     if ('get' in request && request.get == 'notifications') {
       sendResponse(BackgroundTask.response);
     } else if ('post' in request && request.post == 'mute') {
-      BackgroundTask.response.muted[request.id] = true;
+      BackgroundTask.mute(request.id);
     }
   }
 );
@@ -46,7 +46,7 @@ var updateNotifications = function(alarm) {
 
 chrome.alarms.onAlarm.addListener(updateNotifications);
 
-function pollForNotifications(userId) {
+var pollForNotifications = function(userId) {
   BackgroundTask.response.state = "requesting";
   var notificationUrl = URL + 'api/notifications';
   var x = new XMLHttpRequest();
@@ -81,7 +81,16 @@ function pollForNotifications(userId) {
     BackgroundTask.noStatus();
   };
   x.send();
-}
+};
+
+BackgroundTask.mute = function(id) {
+  BackgroundTask.response.muted[id] = true;
+  var muteUrl = URL + 'api/mute';
+  var x = new XMLHttpRequest();
+  x.open('POST', muteUrl);
+  x.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  x.send('id=' + id);
+};
 
 BackgroundTask.getNextUpdateSecs = function() {
   if (BackgroundTask.response.alarm == null) {
