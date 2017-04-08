@@ -2,11 +2,11 @@ package com.meab.subscriptions;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Text;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.meab.DatastoreConstants;
-import com.meab.SecretDatastore;
-import com.meab.servlet.MeabServlet;
+import com.meab.notifications.Notification;
+import com.meab.notifications.NotificationDatastore;
 import com.meab.servlet.MeabServletException;
 import com.meab.user.User;
 import com.stripe.exception.APIConnectionException;
@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -31,6 +32,7 @@ public class SubscribeServlet extends SubscriptionServlet {
   private static final String STRIPE_TOKEN = "stripeToken";
   private static final String STRIPE_EMAIL = "stripeEmail";
   private static final String SUBSCRIPTION_ID = "meab";
+  private final NotificationDatastore notificationDatastore = new NotificationDatastore();
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -62,6 +64,18 @@ public class SubscribeServlet extends SubscriptionServlet {
     }
 
     Entity userEntity = user.getEntity();
+    Set<String> trackedRepositories = user.trackedRepositories();
+    for (Entity entity : notificationDatastore.getNotifications(user.id())) {
+      Notification notification = Notification.fromEntity(entity);
+      if (notification == null) {
+        continue;
+      }
+      trackedRepositories.add(notification.getRepository());
+    }
+
+    userEntity.setProperty(
+      DatastoreConstants.User.TRACKED_REPOSITORIES,
+      Lists.newArrayList(trackedRepositories.iterator()));
     userEntity.setProperty(DatastoreConstants.User.SUBSCRIPTION_INFO, new Text(customer.toJson()));
     userEntity.setProperty(DatastoreConstants.User.MAX_REPOS, Integer.MAX_VALUE);
     userDatastore.update(userEntity);

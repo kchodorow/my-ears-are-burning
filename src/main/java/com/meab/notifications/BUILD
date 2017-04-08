@@ -1,11 +1,7 @@
 java_library(
     name = "notifications",
     srcs = glob(["*.java"]),
-    visibility = [
-        "//src/main/java/com/meab/api:__pkg__",
-        "//src/main/java/com/meab/oauth:__pkg__",
-        "//src/test/java/com/meab/oauth:__pkg__",
-    ],
+    visibility = ["//src/main/java/com/meab:__subpackages__"],
     deps = [
         "//src/main/java/com/meab",
         "//src/main/java/com/meab/user",

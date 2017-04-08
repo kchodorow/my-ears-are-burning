@@ -4,6 +4,7 @@ java_library(
     visibility = ["//src/main/java:__pkg__"],
     deps = [
         "//src/main/java/com/meab",
+        "//src/main/java/com/meab/notifications",
         "//src/main/java/com/meab/servlet",
         "//src/main/java/com/meab/user",
         "@com_google_appengine_java//:api",

@@ -6,6 +6,8 @@ var loadFromServer = function() {
     return;
   }
 
+  checkForMessage();
+
   $('#username').text(cookieParser.get('username'));
   $('#login').addClass('active');
   $('#delete-account').on('click', function() {
@@ -26,6 +28,25 @@ var loadHeader = function() {
   var login = $('#login').attr('href', '/user').text(username);
   $('<a/>').attr('href', '/logout').text('Log out')
     .appendTo($('<li/>').appendTo(login.parent().parent()));
+};
+
+var checkForMessage = function() {
+  var pieces = location.href.split('?');
+  if (pieces.length == 1) {
+    return;
+  }
+
+  var query = pieces[1];
+  var kv = query.split('=');
+  if (kv[0] == 'msg' && kv[1] == 'thank-you') {
+    $('#lead').prepend(
+      $('<p/>').text(
+        'The extension will now automatically track all repositories unless you'
+          + ' deselect them below. You can cancel your subscription anytime'
+          + ' with the \'Cancel\' button below.'));
+    $('#lead').prepend(
+      $('<h2/>').text('Thank you for subscribing!');
+  }
 };
 
 var CookieParser = function() {

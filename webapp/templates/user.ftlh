@@ -1,7 +1,7 @@
       <div class="jumbotron">
-        <h1 id="username"></h1>
+        <h3 id="username"></h3>
 
-        <div>
+        <div id="lead">
           <p><a href="https://chrome.google.com/webstore/detail/my-ears-are-burning/phkokjkjpdmdeongeaaddaiocjpcmpjb">Download the Chrome extension</a>.</p>
         </div>
 
