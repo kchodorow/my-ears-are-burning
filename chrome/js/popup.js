@@ -18,11 +18,12 @@ var receiveNotifications = function(response) {
   }
 
   var popup = new Popup(response);
+  console.log("response: " +response.state);
   switch (response.state) {
   case 'startup':
     popup.startup();
     break;
-  case 'login':
+  case 'need-login':
     popup.login();
     break;
   case 'error':
@@ -34,6 +35,8 @@ var receiveNotifications = function(response) {
   case 'loaded':
     popup.loaded();
     break;
+  default:
+    console.log("Nothing matched.");
   }
 };
 

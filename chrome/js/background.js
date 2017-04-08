@@ -14,6 +14,7 @@ BackgroundTask.response = {
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
+    updateNotifications();
     if ('get' in request && request.get == 'notifications') {
       sendResponse(BackgroundTask.response);
     } else if ('post' in request && request.post == 'mute') {

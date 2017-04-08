@@ -34,5 +34,6 @@ public class UnsubscribeServlet extends SubscriptionServlet {
       CardException | APIException e) {
       log.warning(e.getMessage());
     }
+    response.sendRedirect("/good-bye");
   }
 }
