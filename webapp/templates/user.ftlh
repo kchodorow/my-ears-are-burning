@@ -17,8 +17,8 @@
         <form action="/subscribe" method="POST">
           <script
              src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-             data-key="pk_test_YaPfGrJsgo9Y1euMO0keOgS4"
-             data-amount="299"
+             data-key="pk_live_t63MSyivfNGjxJfKs0j1NNAz"
+             data-amount="199"
              data-name="My ears are burning"
              data-description="Monthly subscription"
              data-image="/assets/ear.png"
