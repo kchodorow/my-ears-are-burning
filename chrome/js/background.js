@@ -1,6 +1,6 @@
 /* global chrome */
 
-var URL = "https://myearsareburning-159618.appspot-preview.com/";
+var URL = "https://meab.kchodorow.com/";
 
 var BackgroundTask = function() {
 };

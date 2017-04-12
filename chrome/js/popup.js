@@ -1,7 +1,7 @@
 /* global $, chrome */
 
 var Extension = {
-  URL : 'https://myearsareburning-159618.appspot-preview.com/'
+  URL : 'https://meab.kchodorow.com/'
 };
 
 var fetchNotifications = function(alarm) {
