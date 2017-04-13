@@ -12,7 +12,7 @@
       <div id="subscribe">
         <p>
           By default, "My ears are burning" will track one repository. If you'd like to track
-          multiple repositories, please subscribe to help support this service:
+          multiple repositories, please subscribe with Stripe to help support this service:
         </p>
         <form action="/subscribe" method="POST">
           <script
