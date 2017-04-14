@@ -9,8 +9,7 @@ import java.io.IOException;
  */
 public class AccessToken extends DevServlet {
   @Override
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    super.doGet(request, response);
+  public void post(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.getWriter().write(
       "access_token=e72e16c7e42f292c6912e7710c838347ae178b4a&scope=user%2Cnotifications");
   }

@@ -5,7 +5,6 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.meab.DatastoreConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,10 +14,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -120,11 +117,18 @@ public class User {
   }
 
   public List<String> trackedRepositories() {
-    return (List<String>) entity.getProperty(DatastoreConstants.User.TRACKED_REPOSITORIES);
+    // Will be null if no repositories have been tracked, yet.
+    List<String> tracked =
+      (List<String>) entity.getProperty(DatastoreConstants.User.TRACKED_REPOSITORIES);
+    if (tracked == null) {
+      tracked = Lists.newArrayList();
+      entity.setProperty(DatastoreConstants.User.TRACKED_REPOSITORIES, tracked);
+    }
+    return tracked;
   }
 
-  public int maxRepositories() {
-    return (int) entity.getProperty(DatastoreConstants.User.MAX_REPOS);
+  public long maxRepositories() {
+    return (long) entity.getProperty(DatastoreConstants.User.MAX_REPOS);
   }
 
   public JSONObject subscriptionInfo() {

@@ -13,14 +13,26 @@ import java.io.IOException;
  */
 public class DevServlet extends HttpServlet {
   @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+  public final void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     Preconditions.checkState(
       SystemProperty.environment.value() == SystemProperty.Environment.Value.Development);
+    get(request, response);
   }
 
   @Override
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+  public final void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     Preconditions.checkState(
       SystemProperty.environment.value() == SystemProperty.Environment.Value.Development);
+    post(request, response);
+  }
+
+  public void get(HttpServletRequest request, HttpServletResponse response)
+    throws IOException {
+
+  }
+
+  public void post(HttpServletRequest request, HttpServletResponse response)
+    throws IOException {
+
   }
 }

@@ -1,5 +1,6 @@
 package com.meab.api;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.appengine.api.datastore.Entity;
 import com.meab.DatastoreConstants;
@@ -14,7 +15,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
 
 /**
  * Update tracked repositories.
@@ -53,7 +53,6 @@ public class RepositoryServlet extends ApiServlet {
       repositories.put(
         new JSONObject().put("name", entry.getKey()).put("count", entry.getValue()));
     }
-    System.out.println("Tracked: " + user.trackedRepositories());
     JSONArray tracked = new JSONArray();
     for (String repo : user.trackedRepositories()) {
       tracked.put(repo);
@@ -86,11 +85,9 @@ public class RepositoryServlet extends ApiServlet {
   public void apiPost(User user, HttpServletRequest request, JSONObject response) {
     String action = request.getParameter("action");
     String repository = request.getParameter("repo");
-    Entity userEntity = user.getEntity();
-    List<String> repos = (List<String>) userEntity.getProperty(
-      DatastoreConstants.User.TRACKED_REPOSITORIES);
+    List<String> repos = user.trackedRepositories();
     if (action.equals("track")) {
-      Integer max = (Integer) user.getEntity().getProperty(DatastoreConstants.User.MAX_REPOS);
+      long max = user.maxRepositories();
       if (repos.size() >= max) {
         repos.clear();
       }
@@ -100,7 +97,8 @@ public class RepositoryServlet extends ApiServlet {
     } else if (action.equals("untrack")) {
       repos.remove(repository);
     }
-    userDatastore.update(userEntity);
+    user.getEntity().setProperty(DatastoreConstants.User.TRACKED_REPOSITORIES, repos);
+    userDatastore.update(user);
 
     JSONArray tracking = new JSONArray();
     for (String repo : repos) {

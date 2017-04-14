@@ -1,7 +1,7 @@
 package com.meab.oauth;
 
-import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.net.UrlEscapers;
+import com.meab.ProdConstants;
 import com.meab.user.User;
 
 import javax.servlet.http.HttpServlet;
@@ -23,11 +23,6 @@ public class GitHubServlet extends HttpServlet {
   private static final String SCOPE_VALUE = "user notifications";
   static final String STATE_KEY = "state";
 
-  private static final String REDIRECT_URL =
-    SystemProperty.environment.value() == SystemProperty.Environment.Value.Production
-      ? "https://github.com/login/oauth/authorize"
-      : "/dev/authorize";
-
   /**
    * Step 1: Redirect to GitHub.
    */
@@ -44,6 +39,7 @@ public class GitHubServlet extends HttpServlet {
     String query = "?" + CLIENT_ID_KEY + "=" + CLIENT_ID_VALUE + "&"
       + SCOPE_KEY + "=" + SCOPE_VALUE + "&"
       + STATE_KEY + "=" + state;
-    response.sendRedirect(UrlEscapers.urlFragmentEscaper().escape(REDIRECT_URL + query));
+    response.sendRedirect(
+      UrlEscapers.urlFragmentEscaper().escape(ProdConstants.GITHUB_LOGIN_URL + query));
   }
 }

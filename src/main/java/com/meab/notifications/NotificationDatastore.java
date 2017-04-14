@@ -11,6 +11,7 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.collect.ImmutableList;
 import com.meab.DatastoreConstants;
+import com.meab.ProdConstants;
 import com.meab.user.User;
 import com.meab.user.UserDatastore;
 import org.apache.http.HttpEntity;
@@ -32,10 +33,6 @@ import java.util.logging.Logger;
 public class NotificationDatastore {
   private static final Logger log = Logger.getLogger(NotificationDatastore.class.getName());
 
-  private static final String USER_URL =
-    SystemProperty.environment.value() == SystemProperty.Environment.Value.Production
-    ? "https://api.github.com/notifications"
-    : "http://localhost:8080/dev/notifications";
   private static final List<String> STUPID_REASONS = ImmutableList.<String>builder()
     .add("invitation").add("author").add("state_change").build();
 
@@ -45,7 +42,8 @@ public class NotificationDatastore {
   public void fetchNotifications(User user) throws IOException {
     HttpClient httpClient = new DefaultHttpClient();
     String lastUpdated = DatastoreConstants.GITHUB_DATE_FORMAT.format(user.lastUpdated());
-    HttpGet getRequest = new HttpGet(USER_URL + "?since=" + lastUpdated);
+    HttpGet getRequest = new HttpGet(
+      ProdConstants.GITHUB_NOTIFICATIONS_URL + "?since=" + lastUpdated);
     getRequest.addHeader("Authorization", "token " + user.accessToken());
     HttpResponse response = httpClient.execute(getRequest);
     HttpEntity entity = response.getEntity();

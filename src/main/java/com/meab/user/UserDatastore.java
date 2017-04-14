@@ -9,6 +9,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.utils.SystemProperty;
 import com.meab.DatastoreConstants;
+import com.meab.ProdConstants;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -23,16 +24,12 @@ import java.util.logging.Logger;
 
 public class UserDatastore {
   private static final Logger log = Logger.getLogger(UserDatastore.class.getName());
-  private static final String GITHUB_USER_URL =
-    SystemProperty.environment.value() == SystemProperty.Environment.Value.Production
-      ? "https://api.github.com/user"
-      : "http://localhost:8080/dev/user";
 
   private final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
   public JSONObject getGitHubUserByAccessToken(String accessToken) throws IOException {
     HttpClient httpClient = new DefaultHttpClient();
-    HttpGet getRequest = new HttpGet(GITHUB_USER_URL);
+    HttpGet getRequest = new HttpGet(ProdConstants.GITHUB_USER_URL);
     getRequest.addHeader("Authorization", "token " + accessToken);
     HttpResponse response = httpClient.execute(getRequest);
     HttpEntity entity = response.getEntity();

@@ -2,10 +2,9 @@ package com.meab.oauth;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.utils.SystemProperty;
 import com.meab.DatastoreConstants;
 import com.meab.SecretDatastore;
+import com.meab.ProdConstants;
 import com.meab.notifications.NotificationDatastore;
 import com.meab.user.User;
 import com.meab.user.UserDatastore;
@@ -40,14 +39,8 @@ public class AccessTokenServlet extends HttpServlet {
   private static final String CLIENT_SECRET_KEY = "client_secret";
   private static final String CODE_KEY = "code";
 
-  private static final String REQUEST_URL =
-    SystemProperty.environment.value() == SystemProperty.Environment.Value.Production
-      ? "https://github.com/login/oauth/access_token"
-      : "http://localhost:8080/dev/access-token";
-
   private final UserDatastore userDatastore;
   private final NotificationDatastore notificationDatastore;
-  private final SecretDatastore secretDatastore;
   private final String githubSecret;
 
   public AccessTokenServlet() {
@@ -59,8 +52,8 @@ public class AccessTokenServlet extends HttpServlet {
     SecretDatastore secretDatastore) {
     this.userDatastore = userDatastore;
     this.notificationDatastore = notificationDatastore;
-    this.secretDatastore = secretDatastore;
-    this.githubSecret = this.secretDatastore.get(SecretDatastore.GITHUB_ID);
+    SecretDatastore secretDatastore1 = secretDatastore;
+    this.githubSecret = secretDatastore1.get(SecretDatastore.GITHUB_ID);
   }
 
   @Override
@@ -101,7 +94,7 @@ public class AccessTokenServlet extends HttpServlet {
 
   private String requestToken(String code, String state)
     throws IOException {
-    HttpPost httpPost = new HttpPost(REQUEST_URL);
+    HttpPost httpPost = new HttpPost(ProdConstants.GITHUB_ACCESS_TOKEN_URL);
     List<NameValuePair> params = new ArrayList<>();
     params.add(new BasicNameValuePair(GitHubServlet.CLIENT_ID_KEY, GitHubServlet.CLIENT_ID_VALUE));
     params.add(new BasicNameValuePair(CLIENT_SECRET_KEY, githubSecret));

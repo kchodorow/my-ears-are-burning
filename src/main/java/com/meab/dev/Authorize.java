@@ -9,8 +9,7 @@ import java.io.IOException;
  */
 public class Authorize extends DevServlet {
   @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    super.doGet(request, response);
+  public void get(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.sendRedirect("/github?code=123456&state=67890");
   }
 }
