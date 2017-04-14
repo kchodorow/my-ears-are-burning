@@ -3,6 +3,7 @@ package com.meab.user;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
@@ -25,13 +26,22 @@ public class UserDatastore {
 
   private final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-  public User createUser(String accessToken) throws IOException {
-    User user = User.create(accessToken, fetchUserInfo(accessToken));
-    datastore.put(user.getEntity());
-    return user;
+  public JSONObject getGitHubUserByAccessToken(String accessToken) throws IOException {
+    HttpClient httpClient = new DefaultHttpClient();
+    HttpGet getRequest = new HttpGet(GITHUB_USER_URL);
+    getRequest.addHeader("Authorization", "token " + accessToken);
+    HttpResponse response = httpClient.execute(getRequest);
+    HttpEntity entity = response.getEntity();
+    String body = EntityUtils.toString(entity, "UTF-8");
+    EntityUtils.consumeQuietly(entity);
+    return new JSONObject(body);
   }
 
-  public User getUser(String uuid) {
+  public Entity getEntityById(int id) throws EntityNotFoundException {
+    return datastore.get(KeyFactory.createKey(DatastoreConstants.User.DATASTORE, id));
+  }
+
+  public User getUserByCookie(String uuid) {
     Entity entity;
     PreparedQuery pq;
     Query.Filter propertyFilter =
@@ -70,17 +80,6 @@ public class UserDatastore {
     Entity entity = user.getEntity();
     entity.setProperty(DatastoreConstants.User.LAST_UPDATED, new Date(System.currentTimeMillis()));
     datastore.put(entity);
-  }
-
-  private JSONObject fetchUserInfo(String accessToken) throws IOException {
-    HttpClient httpClient = new DefaultHttpClient();
-    HttpGet getRequest = new HttpGet(GITHUB_USER_URL);
-    getRequest.addHeader("Authorization", "token " + accessToken);
-    HttpResponse response = httpClient.execute(getRequest);
-    HttpEntity entity = response.getEntity();
-    String body = EntityUtils.toString(entity, "UTF-8");
-    EntityUtils.consumeQuietly(entity);
-    return new JSONObject(body);
   }
 
   public void delete(User user) {

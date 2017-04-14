@@ -21,7 +21,7 @@ public class GitHubServletTest {
     servlet.doGet(request, response);
     verify(response).sendRedirect(contains(
       "https://github.com/login/oauth/authorize?client_id=63784a223920d4d5609c"
-        + "&scope=notifications"));
+        + "&scope=user%20notifications&state="));
   }
 
 }

@@ -79,7 +79,7 @@ public abstract class User {
     }
   }
 
-  static User fromEntity(Entity entity) {
+  public static User fromEntity(Entity entity) {
     Set<String> repos = Sets.newHashSet();
     if (entity.getProperty(DatastoreConstants.User.TRACKED_REPOSITORIES) != null) {
       ArrayList<String> possibleRepos = (ArrayList<String>) entity.getProperty(
@@ -94,12 +94,24 @@ public abstract class User {
     String cookieId = entity.getProperty(DatastoreConstants.User.COOKIE) == null
       ? UUID.randomUUID().toString()
       : entity.getProperty(DatastoreConstants.User.COOKIE).toString();
-    int maxRepos = ((Long) entity.getProperty(DatastoreConstants.User.MAX_REPOS)).intValue();
+    Object maxReposObject = entity.getProperty(DatastoreConstants.User.MAX_REPOS);
+    int maxRepos = 1;
+    if (maxReposObject != null) {
+      if (maxReposObject instanceof Integer) {
+        maxRepos = (Integer) maxReposObject;
+      } else {
+        maxRepos = ((Long) maxReposObject).intValue();
+      }
+    }
     JSONObject subscriptionInfo = entity.hasProperty(DatastoreConstants.User.SUBSCRIPTION_INFO)
       ? new JSONObject(((Text) entity.getProperty(DatastoreConstants.User.SUBSCRIPTION_INFO))
         .getValue())
       : new JSONObject();
-    String userInfo = ((Text) entity.getProperty(DatastoreConstants.User.USER_INFO)).getValue();
+    Object userInfoObject = entity.getProperty(DatastoreConstants.User.USER_INFO);
+    String userInfo = "{}";
+    if (userInfoObject != null) {
+      userInfo = ((Text) userInfoObject).getValue();
+    }
     return new AutoValue_User(
       entity.getKey().getName(),
       cookieId,

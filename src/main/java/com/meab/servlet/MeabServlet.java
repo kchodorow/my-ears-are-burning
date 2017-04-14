@@ -19,7 +19,7 @@ public class MeabServlet extends HttpServlet {
     if (cookie == null) {
       throw new MeabServletException("Not logged in");
     }
-    User user = userDatastore.getUser(cookie);
+    User user = userDatastore.getUserByCookie(cookie);
     if (user == null) {
       User.unsetCookie(cookie, response);
       throw new MeabServletException("Couldn't find user for " + cookie);

@@ -14,5 +14,6 @@ java_library(
     ],
     visibility = [
         "//src/main/java:__subpackages__",
+        "//src/test/java:__subpackages__",
     ],
 )

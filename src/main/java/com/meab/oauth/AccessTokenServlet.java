@@ -1,6 +1,9 @@
 package com.meab.oauth;
 
-import com.google.common.base.Strings;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.meab.DatastoreConstants;
 import com.meab.SecretDatastore;
 import com.meab.notifications.NotificationDatastore;
 import com.meab.user.User;
@@ -14,6 +17,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -32,18 +36,27 @@ import java.util.logging.Logger;
 public class AccessTokenServlet extends HttpServlet {
   private static final Logger log = Logger.getLogger(AccessTokenServlet.class.getName());
 
-  static final String CLIENT_SECRET_KEY = "client_secret";
-  static final String CODE_KEY = "code";
+  private static final String CLIENT_SECRET_KEY = "client_secret";
+  private static final String CODE_KEY = "code";
 
-  static final String REQUEST_URL = "https://github.com/login/oauth/access_token";
+  private static final String REQUEST_URL = "https://github.com/login/oauth/access_token";
 
-  private final SecretDatastore secretDatastore = new SecretDatastore();
-  private final UserDatastore userDatastore = new UserDatastore();
-  private final NotificationDatastore notificationDatastore = new NotificationDatastore();
+  private final UserDatastore userDatastore;
+  private final NotificationDatastore notificationDatastore;
+  private final SecretDatastore secretDatastore;
   private final String githubSecret;
 
   public AccessTokenServlet() {
-    githubSecret = secretDatastore.get(SecretDatastore.GITHUB_ID);
+    this(new UserDatastore(), new NotificationDatastore(), new SecretDatastore());
+  }
+
+  AccessTokenServlet(
+    UserDatastore userDatastore, NotificationDatastore notificationDatastore,
+    SecretDatastore secretDatastore) {
+    this.userDatastore = userDatastore;
+    this.notificationDatastore = notificationDatastore;
+    this.secretDatastore = secretDatastore;
+    this.githubSecret = this.secretDatastore.get(SecretDatastore.GITHUB_ID);
   }
 
   @Override
@@ -58,9 +71,23 @@ public class AccessTokenServlet extends HttpServlet {
     String code = request.getParameter("code");
     String state = request.getParameter("state");
     String tokenResponse = requestToken(code, state);
+
+    String tokens[] = tokenResponse.split("&");
+    String accessToken = null;
+    for (String token : tokens) {
+      if (token.startsWith("access_token=")) {
+        accessToken = token.substring("access_token=".length());
+        break;
+      }
+    }
+    if (accessToken == null) {
+      log.warning("No access token returned: " + tokenResponse);
+      throw new IOException("Did not receive access token");
+    }
+
     User user;
     try {
-      user = getUser(tokenResponse, state);
+      user = getUser(accessToken);
     } catch (LoginException e) {
       throw new IOException(e.getMessage());
     }
@@ -87,33 +114,40 @@ public class AccessTokenServlet extends HttpServlet {
     return responseContent;
   }
 
-  private User getUser(String responseContent, String uuid) throws LoginException {
-    String tokens[] = responseContent.split("&");
-    String accessToken = null;
-    for (String token : tokens) {
-      if (token.startsWith("access_token=")) {
-        accessToken = token.substring("access_token=".length());
-        break;
-      }
+  User getUser(String accessToken) throws LoginException {
+    Entity userEntity;
+    JSONObject object;
+    try {
+      object = userDatastore.getGitHubUserByAccessToken(accessToken);
+    } catch (IOException e) {
+      throw new LoginException(
+        "Couldn't get GitHub user with access token " + accessToken + ": " + e.getMessage());
     }
-    if (accessToken == null) {
-      log.warning("No access token returned: " + responseContent);
-      throw new LoginException("Did not receive access token");
+    try {
+      userEntity = userDatastore.getEntityById(object.getInt("id"));
+    } catch (EntityNotFoundException e) {
+      try {
+        User newUser = User.create(accessToken, object);
+        userEntity = newUser.getEntity();
+      } catch (IOException e1) {
+        throw new LoginException(
+          "Unable to parse json: " + object.toString() + ": " + e1.getMessage());
+      }
     }
 
-    if (Strings.isNullOrEmpty(uuid)) {
-      log.info("state was empty for access token request");
-      uuid = UUID.randomUUID().toString();
+    String cookie = (String) userEntity.getProperty(DatastoreConstants.User.COOKIE);
+    if (cookie == null) {
+      userEntity.setProperty(DatastoreConstants.User.COOKIE, UUID.randomUUID().toString());
     }
-    User user = userDatastore.getUser(uuid);
-    if (user == null) {
-      try {
-        user = userDatastore.createUser(accessToken);
-        // Pre-load user notifications.
-        notificationDatastore.fetchNotifications(user);
-      } catch (IOException e) {
-        throw new LoginException("Couldn't create user " + uuid + ": " + e.getMessage());
-      }
+    userDatastore.update(userEntity);
+    User user = User.fromEntity(userEntity);
+
+    try {
+      // Pre-load user notifications.
+      notificationDatastore.fetchNotifications(user);
+    } catch (IOException e) {
+      log.warning("Failed to fetch notifications: " + e.getMessage());
+      // Ignore for now, hopefully it was a transient error.
     }
     return user;
   }

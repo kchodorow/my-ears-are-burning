@@ -5,5 +5,6 @@ chrome_extension(
     srcs = glob([
         "js/*.js",
         "assets/*",
+        "css/*",
     ]) + ["popup.html"],
 )
