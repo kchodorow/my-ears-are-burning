@@ -116,12 +116,17 @@ User.prototype.generateList = function() {
   $('#tracking-list').text('Loading...');
   $.getJSON('/api/repositories').done(function(json) {
     if (!json.ok) {
-      $('#tracking-list').text("Request Failed: " + json);
+      $('#tracking-list').text("Request Failed: " + JSON.stringify(json));
       return;
     }
 
     var div = $('#tracking-list');
     div.empty();
+
+    if (json.repositories.length == 0) {
+      $('#tracking-list').text("No notifications found. Try again later?");
+    }
+
     for (var i = 0; i < json.repositories.length; ++i) {
       let repo = json.repositories[i];
       var a = $('<a/>')

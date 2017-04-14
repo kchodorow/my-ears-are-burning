@@ -1,5 +1,6 @@
 package com.meab.oauth;
 
+import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.net.UrlEscapers;
 import com.meab.user.User;
 
@@ -18,11 +19,14 @@ public class GitHubServlet extends HttpServlet {
 
   static final String CLIENT_ID_KEY = "client_id";
   static final String CLIENT_ID_VALUE = "63784a223920d4d5609c";
-  static final String SCOPE_KEY = "scope";
-  static final String SCOPE_VALUE = "user notifications";
+  private static final String SCOPE_KEY = "scope";
+  private static final String SCOPE_VALUE = "user notifications";
   static final String STATE_KEY = "state";
 
-  static final String REDIRECT_URL = "https://github.com/login/oauth/authorize";
+  private static final String REDIRECT_URL =
+    SystemProperty.environment.value() == SystemProperty.Environment.Value.Production
+      ? "https://github.com/login/oauth/authorize"
+      : "/dev/authorize";
 
   /**
    * Step 1: Redirect to GitHub.

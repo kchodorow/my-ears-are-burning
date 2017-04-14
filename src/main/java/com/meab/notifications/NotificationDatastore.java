@@ -8,6 +8,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.utils.SystemProperty;
 import com.google.common.collect.ImmutableList;
 import com.meab.DatastoreConstants;
 import com.meab.user.User;
@@ -31,7 +32,10 @@ import java.util.logging.Logger;
 public class NotificationDatastore {
   private static final Logger log = Logger.getLogger(NotificationDatastore.class.getName());
 
-  private static final String USER_URL = "https://api.github.com/notifications";
+  private static final String USER_URL =
+    SystemProperty.environment.value() == SystemProperty.Environment.Value.Production
+    ? "https://api.github.com/notifications"
+    : "http://localhost:8080/dev/notifications";
   private static final List<String> STUPID_REASONS = ImmutableList.<String>builder()
     .add("invitation").add("author").add("state_change").build();
 

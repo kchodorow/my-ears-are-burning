@@ -3,6 +3,7 @@ package com.meab.oauth;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.utils.SystemProperty;
 import com.meab.DatastoreConstants;
 import com.meab.SecretDatastore;
 import com.meab.notifications.NotificationDatastore;
@@ -39,7 +40,10 @@ public class AccessTokenServlet extends HttpServlet {
   private static final String CLIENT_SECRET_KEY = "client_secret";
   private static final String CODE_KEY = "code";
 
-  private static final String REQUEST_URL = "https://github.com/login/oauth/access_token";
+  private static final String REQUEST_URL =
+    SystemProperty.environment.value() == SystemProperty.Environment.Value.Production
+      ? "https://github.com/login/oauth/access_token"
+      : "http://localhost:8080/dev/access-token";
 
   private final UserDatastore userDatastore;
   private final NotificationDatastore notificationDatastore;

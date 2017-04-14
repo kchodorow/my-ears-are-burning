@@ -43,6 +43,23 @@
         <servlet-class>com.meab.oauth.DeleteServlet</servlet-class>
     </servlet>
 
+    <servlet>
+        <servlet-name>dev-access-token</servlet-name>
+        <servlet-class>com.meab.dev.AccessToken</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>dev-authorize</servlet-name>
+        <servlet-class>com.meab.dev.Authorize</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>dev-user</servlet-name>
+        <servlet-class>com.meab.dev.User</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>dev-notifications</servlet-name>
+        <servlet-class>com.meab.dev.Notifications</servlet-class>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>tmpl</servlet-name>
         <url-pattern>/</url-pattern>
@@ -95,5 +112,22 @@
     <servlet-mapping>
         <servlet-name>unsubscribe</servlet-name>
         <url-pattern>/unsubscribe</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>dev-access-token</servlet-name>
+        <url-pattern>/dev/access-token</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>dev-authorize</servlet-name>
+        <url-pattern>/dev/authorize</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>dev-user</servlet-name>
+        <url-pattern>/dev/user</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>dev-notifications</servlet-name>
+        <url-pattern>/dev/notifications</url-pattern>
     </servlet-mapping>
 </web-app>
