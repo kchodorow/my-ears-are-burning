@@ -5,7 +5,6 @@ java_library(
         "//src/main/java/com/meab",
         "@apache_httpclient//jar",
         "@apache_httpcore//jar",
-        "@autovalue//:processor",
         "@com_google_appengine_java//:api",
         "@guava//jar",
         "@javax_servlet_api//jar",

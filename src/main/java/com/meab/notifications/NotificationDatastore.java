@@ -44,7 +44,7 @@ public class NotificationDatastore {
 
   public void fetchNotifications(User user) throws IOException {
     HttpClient httpClient = new DefaultHttpClient();
-    String lastUpdated = user.getLastUpdated();
+    String lastUpdated = DatastoreConstants.GITHUB_DATE_FORMAT.format(user.lastUpdated());
     HttpGet getRequest = new HttpGet(USER_URL + "?since=" + lastUpdated);
     getRequest.addHeader("Authorization", "token " + user.accessToken());
     HttpResponse response = httpClient.execute(getRequest);
@@ -70,7 +70,7 @@ public class NotificationDatastore {
     userDatastore.setLastUpdated(user);
   }
 
-  public Iterable<Entity> getNotifications(String userId) {
+  public Iterable<Entity> getNotifications(long userId) {
     Query.FilterPredicate predicate = new Query.FilterPredicate(
       DatastoreConstants.Notifications.USER_ID, Query.FilterOperator.EQUAL, userId);
     Query query = new Query(DatastoreConstants.Notifications.DATASTORE).setFilter(predicate);

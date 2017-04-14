@@ -3,19 +3,21 @@ package com.meab.user;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
-import com.google.auto.value.AutoValue;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.meab.DatastoreConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.annotation.Nullable;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -60,87 +62,89 @@ import java.util.logging.Logger;
  *     "company":"Google",
  * }
  */
-@AutoValue
-public abstract class User {
+public class User {
   private static final Logger log = Logger.getLogger(User.class.getName());
 
   // The name that cookies coming from the client are under.
   // TODO: change this so the value doesn't match the ID field of the user.
   private static final String COOKIE_NAME = "id";
+  private final Entity entity;
+
+  private User(Entity entity) {
+    this.entity = entity;
+  }
 
   public static User create(String accessToken, JSONObject userInfo) throws IOException {
-    try {
-      return new AutoValue_User(
-        userInfo.getInt("id") + "", UUID.randomUUID().toString(), accessToken, new Date(0),
-        Sets.<String>newHashSet(), userInfo, 1, new JSONObject());
-    } catch (JSONException e) {
-      log.warning(e.getMessage() + ": " + userInfo.toString());
-      throw new IOException(e.getMessage());
-    }
+    Entity entity = new Entity(
+      KeyFactory.createKey(DatastoreConstants.User.DATASTORE, userInfo.getInt("id")));
+    entity.setProperty(DatastoreConstants.User.COOKIE, UUID.randomUUID().toString());
+    entity.setProperty(DatastoreConstants.User.ACCESS_TOKEN, accessToken);
+    entity.setProperty(DatastoreConstants.User.LAST_UPDATED, new Date(0));
+    entity.setProperty(DatastoreConstants.User.TRACKED_REPOSITORIES, Lists.newArrayList());
+    entity.setProperty(DatastoreConstants.User.USER_INFO, new Text(userInfo.toString()));
+    entity.setProperty(DatastoreConstants.User.MAX_REPOS, 1);
+    entity.setProperty(
+      DatastoreConstants.User.SUBSCRIPTION_INFO, new Text(new JSONObject().toString()));
+    return new User(entity);
   }
 
   public static User fromEntity(Entity entity) {
-    Set<String> repos = Sets.newHashSet();
-    if (entity.getProperty(DatastoreConstants.User.TRACKED_REPOSITORIES) != null) {
-      ArrayList<String> possibleRepos = (ArrayList<String>) entity.getProperty(
-        DatastoreConstants.User.TRACKED_REPOSITORIES);
-      for (String repo : possibleRepos) {
-        if (repo != null) {
-          repos.add(repo);
-        }
-      }
-    }
-
-    String cookieId = entity.getProperty(DatastoreConstants.User.COOKIE) == null
-      ? UUID.randomUUID().toString()
-      : entity.getProperty(DatastoreConstants.User.COOKIE).toString();
-    Object maxReposObject = entity.getProperty(DatastoreConstants.User.MAX_REPOS);
-    int maxRepos = 1;
-    if (maxReposObject != null) {
-      if (maxReposObject instanceof Integer) {
-        maxRepos = (Integer) maxReposObject;
-      } else {
-        maxRepos = ((Long) maxReposObject).intValue();
-      }
-    }
-    JSONObject subscriptionInfo = entity.hasProperty(DatastoreConstants.User.SUBSCRIPTION_INFO)
-      ? new JSONObject(((Text) entity.getProperty(DatastoreConstants.User.SUBSCRIPTION_INFO))
-        .getValue())
-      : new JSONObject();
-    Object userInfoObject = entity.getProperty(DatastoreConstants.User.USER_INFO);
-    String userInfo = "{}";
-    if (userInfoObject != null) {
-      userInfo = ((Text) userInfoObject).getValue();
-    }
-    return new AutoValue_User(
-      entity.getKey().getName(),
-      cookieId,
-      entity.getProperty(DatastoreConstants.User.ACCESS_TOKEN).toString(),
-      (Date) entity.getProperty(DatastoreConstants.User.LAST_UPDATED),
-      repos,
-      new JSONObject(userInfo),
-      maxRepos,
-      subscriptionInfo);
+    return new User(entity);
   }
 
   public Entity getEntity() {
-    Entity entity = new Entity(KeyFactory.createKey(DatastoreConstants.User.DATASTORE, id()));
-    entity.setProperty(DatastoreConstants.User.COOKIE, cookieId());
-    entity.setProperty(DatastoreConstants.User.ACCESS_TOKEN, accessToken());
-    entity.setProperty(DatastoreConstants.User.LAST_UPDATED, lastUpdated());
-    entity.setProperty(
-      DatastoreConstants.User.TRACKED_REPOSITORIES,
-      Lists.newArrayList(trackedRepositories().iterator()));
-    entity.setProperty(
-      DatastoreConstants.User.USER_INFO, new Text(userInfo().toString()));
-    entity.setProperty(DatastoreConstants.User.MAX_REPOS, maxRepositories());
-    entity.setProperty(
-      DatastoreConstants.User.SUBSCRIPTION_INFO, new Text(subscriptionInfo().toString()));
     return entity;
   }
 
+  private JSONObject getUserInfo() {
+    String userInfo = ((Text) entity.getProperty(DatastoreConstants.User.USER_INFO)).getValue();
+    try {
+      return new JSONObject(userInfo);
+    } catch (JSONException e) {
+      log.warning("Unable to parse user info: " + userInfo);
+      return new JSONObject();
+    }
+  }
+
+  public long id() {
+    return entity.getKey().getId();
+  }
+
   public String getUsername() {
-    return userInfo().getString("login");
+    return getUserInfo().getString("login");
+  }
+
+  @Nullable
+  public String accessToken() {
+    return (String) entity.getProperty(DatastoreConstants.User.ACCESS_TOKEN);
+  }
+
+  public List<String> trackedRepositories() {
+    return (List<String>) entity.getProperty(DatastoreConstants.User.TRACKED_REPOSITORIES);
+  }
+
+  public int maxRepositories() {
+    return (int) entity.getProperty(DatastoreConstants.User.MAX_REPOS);
+  }
+
+  public JSONObject subscriptionInfo() {
+    String subscriptionInfo =
+      ((Text) entity.getProperty(DatastoreConstants.User.SUBSCRIPTION_INFO)).getValue();
+    try {
+      return new JSONObject(subscriptionInfo);
+    } catch (JSONException e) {
+      log.warning("Unable to parse json: " + subscriptionInfo);
+      return new JSONObject();
+    }
+  }
+
+  public Date lastUpdated() {
+    return (Date) entity.getProperty(DatastoreConstants.User.LAST_UPDATED);
+  }
+
+  @Nullable
+  public String cookieId() {
+    return (String) entity.getProperty(DatastoreConstants.User.COOKIE);
   }
 
   public static String getCookieId(HttpServletRequest request) {
@@ -158,7 +162,9 @@ public abstract class User {
   }
 
   public void setCookie(HttpServletResponse response) {
-    response.addCookie(new Cookie(COOKIE_NAME, cookieId()));
+    String cookie = (String) entity.getProperty(DatastoreConstants.User.COOKIE);
+    Preconditions.checkNotNull(cookie);
+    response.addCookie(new Cookie(COOKIE_NAME, cookie));
     response.addCookie(new Cookie("username", getUsername()));
   }
 
@@ -166,18 +172,5 @@ public abstract class User {
     Cookie cookie = new Cookie(COOKIE_NAME, cookieId);
     cookie.setMaxAge(0);
     response.addCookie(cookie);
-  }
-
-  public abstract String id();
-  public abstract String cookieId();
-  public abstract String accessToken();
-  public abstract Date lastUpdated();
-  public abstract Set<String> trackedRepositories();
-  public abstract JSONObject userInfo();
-  public abstract int maxRepositories();
-  public abstract JSONObject subscriptionInfo();
-
-  public String getLastUpdated() {
-    return DatastoreConstants.GITHUB_DATE_FORMAT.format(lastUpdated());
   }
 }

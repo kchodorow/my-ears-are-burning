@@ -53,6 +53,7 @@ public class RepositoryServlet extends ApiServlet {
       repositories.put(
         new JSONObject().put("name", entry.getKey()).put("count", entry.getValue()));
     }
+    System.out.println("Tracked: " + user.trackedRepositories());
     JSONArray tracked = new JSONArray();
     for (String repo : user.trackedRepositories()) {
       tracked.put(repo);
@@ -62,7 +63,7 @@ public class RepositoryServlet extends ApiServlet {
     response.put("subscribed", user.maxRepositories() > 1);
     response.put("repositories", repositories);
     response.put("tracked", tracked);
-    response.put("name", user.userInfo().getString("login"));
+    response.put("name", user.getUsername());
   }
 
   private static class NumberSeenComparator implements Comparator<Map.Entry<String, Integer>> {

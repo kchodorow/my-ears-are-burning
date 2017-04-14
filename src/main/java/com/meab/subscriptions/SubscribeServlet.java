@@ -1,5 +1,6 @@
 package com.meab.subscriptions;
 
+import com.google.common.collect.Sets;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Text;
 import com.google.common.collect.ImmutableMap;
@@ -65,7 +66,8 @@ public class SubscribeServlet extends SubscriptionServlet {
     }
 
     Entity userEntity = user.getEntity();
-    Set<String> trackedRepositories = user.trackedRepositories();
+    Set<String> trackedRepositories = Sets.newHashSet();
+    trackedRepositories.addAll(user.trackedRepositories());
     for (Entity entity : notificationDatastore.getNotifications(user.id())) {
       Notification notification = Notification.fromEntity(entity);
       if (notification == null) {
