@@ -4,6 +4,7 @@ java_binary(
     runtime_deps = [
         "//src/main/java/com/meab/api",
         "//src/main/java/com/meab/dev",        
+        "//src/main/java/com/meab/migration",        
         "//src/main/java/com/meab/oauth",
         "//src/main/java/com/meab/subscriptions",
         "//src/main/java/com/meab/ui",

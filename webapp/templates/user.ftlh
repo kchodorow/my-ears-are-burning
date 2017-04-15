@@ -12,8 +12,8 @@
       <div id="subscribe">
         <p>
           By default, "My ears are burning" will track one repository. If you'd like to track
-          multiple repositories, please subscribe for $1.99/month to help support running this
-          service. Cancel anytime.
+          multiple repositories, please subscribe to help support running this
+          service. $1.99/month, Cancel anytime.
         </p>
         <form action="/subscribe" method="POST">
           <script
