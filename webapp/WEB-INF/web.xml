@@ -80,6 +80,10 @@
         <servlet-name>tmpl</servlet-name>
         <url-pattern>/good-bye</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>tmpl</servlet-name>
+        <url-pattern>/404</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>oauth</servlet-name>
