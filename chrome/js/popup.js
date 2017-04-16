@@ -159,6 +159,7 @@ Popup.prototype.loaded = function() {
   } else {
     table.appendTo(this.div_);
     this.div_.css('height', '496px');
+    this.div_.scrollTop(0);
   }
 };
 
