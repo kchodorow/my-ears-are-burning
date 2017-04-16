@@ -158,6 +158,7 @@ Popup.prototype.loaded = function() {
     this.div_.text("All caught up!");
   } else {
     table.appendTo(this.div_);
+    $('body').css('height', '496px');
   }
 };
 

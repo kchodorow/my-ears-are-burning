@@ -23,12 +23,6 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
-var alarmInfo = {
-  delayInMinutes:1.1,
-  periodInMinutes:5
-};
-chrome.alarms.create("update-github-notifications", alarmInfo);
-
 var updateNotifications = function(alarm) {
   var cookieDetails = {
     url : URL,
@@ -44,10 +38,10 @@ var updateNotifications = function(alarm) {
   });
 };
 
-chrome.alarms.onAlarm.addListener(updateNotifications);
-
 var pollForNotifications = function(userId) {
-  BackgroundTask.response.state = "requesting";
+  if (BackgroundTask.response.state != 'loaded') {
+    BackgroundTask.response.state = "requesting";
+  }
   var notificationUrl = URL + 'api/notifications';
   var x = new XMLHttpRequest();
   x.open('GET', notificationUrl);
@@ -125,3 +119,13 @@ BackgroundTask.loaded = function(num) {
     chrome.browserAction.setIcon({path: 'assets/read.png'});
   }
 };
+
+var alarmInfo = {
+  delayInMinutes:1.1,
+  periodInMinutes:5
+};
+chrome.alarms.create("update-github-notifications", alarmInfo);
+chrome.alarms.onAlarm.addListener(updateNotifications);
+
+// Initially, check if we're logged in and such.
+updateNotifications();
