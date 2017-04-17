@@ -13,7 +13,6 @@
     "permissions": [
         "alarms",
         "cookies",
-        "tabs",
         "https://meab.kchodorow.com/"
     ],
     "background": {
