@@ -133,7 +133,8 @@ User.prototype.generateList = function() {
             .attr('id', User._getRepoId(repo.name))
             .attr('href', '#')
             .addClass('list-group-item list-group-item-action')
-            .text('https://github.com/' + repo.name + ' (' + repo.count + ' notifications)')
+            .text('https://github.com/' + repo.name + ' (' + repo.count
+                  + ' notification' + (repo.count == 1 ? '' : 's') + ')')
             .appendTo(div);
       a.on('click', function() {
         var elem = this;

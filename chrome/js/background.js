@@ -12,6 +12,13 @@ BackgroundTask.response = {
   muted : {}
 };
 
+var Cookie = {
+  DETAILS : {
+    url : URL,
+    name : "id"
+  }
+};
+
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     updateNotifications();
@@ -24,11 +31,7 @@ chrome.runtime.onMessage.addListener(
 );
 
 var updateNotifications = function(alarm) {
-  var cookieDetails = {
-    url : URL,
-    name : "id"
-  };
-  chrome.cookies.get(cookieDetails, function(cookie) {
+  chrome.cookies.get(Cookie.DETAILS, function(cookie) {
     if (cookie == null) {
       BackgroundTask.response.state = "need-login";
       return;
@@ -51,6 +54,18 @@ var pollForNotifications = function(userId) {
     if (!githubResponse) {
       BackgroundTask.response.state = "error";
       BackgroundTask.response.message = 'No response from server.';
+      return;
+    }
+    if (!githubResponse.ok) {
+      if (/Couldn't find user/.test(githubResponse.error)) {
+        chrome.cookies.remove(Cookie.DETAILS, function(deletedCookie) {
+          console.log("deleted: " + deletedCookie);
+        });
+        BackgroundTask.response.state = "need-login";
+      } else {
+        BackgroundTask.response.state = 'error';
+        BackgroundTask.response.message = githubResponse.error;
+      }
       return;
     }
     BackgroundTask.response.notifications = githubResponse.notifications;

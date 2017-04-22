@@ -7,7 +7,6 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.utils.SystemProperty;
 import com.meab.DatastoreConstants;
 import com.meab.ProdConstants;
 import org.apache.http.HttpEntity;
@@ -47,7 +46,7 @@ public class UserDatastore {
     PreparedQuery pq;
     Query.Filter propertyFilter =
       new Query.FilterPredicate(
-        DatastoreConstants.User.COOKIE, Query.FilterOperator.GREATER_THAN_OR_EQUAL, uuid);
+        DatastoreConstants.User.COOKIE, Query.FilterOperator.EQUAL, uuid);
     Query q = new Query(DatastoreConstants.User.DATASTORE).setFilter(propertyFilter);
     pq = datastore.prepare(q);
     try {

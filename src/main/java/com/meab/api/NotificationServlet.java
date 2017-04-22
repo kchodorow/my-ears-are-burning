@@ -38,6 +38,7 @@ public class NotificationServlet extends ApiServlet {
     response.put("notifications", notificationsByRepository);
     response.put("api", DatastoreConstants.API_VERSION);
     response.put("tracked", user.trackedRepositories().size());
+    response.put("ok", true);
     if (user.trackedRepositories().size() == 0) {
       return;
     }

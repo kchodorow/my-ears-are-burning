@@ -64,7 +64,7 @@ public class User {
 
   // The name that cookies coming from the client are under.
   // TODO: change this so the value doesn't match the ID field of the user.
-  private static final String COOKIE_NAME = "id";
+  private static final String BROWSER_COOKIE_NAME = "id";
   private final Entity entity;
 
   private User(Entity entity) {
@@ -158,7 +158,7 @@ public class User {
     }
     String cookieId = null;
     for (Cookie cookie : cookies) {
-      if (cookie.getName().equals(COOKIE_NAME)) {
+      if (cookie.getName().equals(BROWSER_COOKIE_NAME)) {
         cookieId = cookie.getValue();
       }
     }
@@ -168,12 +168,12 @@ public class User {
   public void setCookie(HttpServletResponse response) {
     String cookie = (String) entity.getProperty(DatastoreConstants.User.COOKIE);
     Preconditions.checkNotNull(cookie);
-    response.addCookie(new Cookie(COOKIE_NAME, cookie));
+    response.addCookie(new Cookie(BROWSER_COOKIE_NAME, cookie));
     response.addCookie(new Cookie("username", getUsername()));
   }
 
   public static void unsetCookie(String cookieId, HttpServletResponse response) {
-    Cookie cookie = new Cookie(COOKIE_NAME, cookieId);
+    Cookie cookie = new Cookie(BROWSER_COOKIE_NAME, cookieId);
     cookie.setMaxAge(0);
     response.addCookie(cookie);
   }
