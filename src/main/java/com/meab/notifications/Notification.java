@@ -89,7 +89,38 @@ public class Notification {
     response.put("title", object.getJSONObject("subject").getString("title"));
     response.put("url", object.getJSONObject("subject").getString("url"));
     response.put("repository", object.getJSONObject("repository").getString("full_name"));
+    maybeAddMentionJson(response);
     return response;
+  }
+
+  private void maybeAddMentionJson(JSONObject response) {
+    if (!entity.hasProperty(DatastoreConstants.Notifications.MENTION)) {
+      return;
+    }
+    String mentionString = ((Text) entity.getProperty(DatastoreConstants.Notifications.MENTION))
+      .getValue();
+    JSONObject rawMention;
+    try {
+      rawMention = new JSONObject(mentionString);
+    } catch (JSONException e) {
+      log.warning("Could not parse: " + mentionString);
+      return;
+    }
+    JSONObject mention = new JSONObject();
+    mention.put("url", rawMention.getString("html_url"));
+    mention.put("date", rawMention.getString("updated_at"));
+    mention.put("username", rawMention.getJSONObject("user").getString("login"));
+    mention.put("body", getMentionBodySummary(rawMention.getString("body")));
+    response.put("mention", mention);
+  }
+
+  private String getMentionBodySummary(String body) {
+    body = body.trim();
+    if (body.length() < 140) {
+      return body;
+    }
+    body = body.substring(0, 140).trim();
+    return body.substring(0, body.lastIndexOf(" ")) + "...";
   }
 
   public boolean done() {

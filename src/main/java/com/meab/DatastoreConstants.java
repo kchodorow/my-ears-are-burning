@@ -25,6 +25,7 @@ public class DatastoreConstants {
     public static final String DATASTORE = "Notifications";
     public static final String USER_ID = "user id";
     public static final String FULL_TEXT = "full text";
+    public static final String MENTION = "mention";
   }
 
 }

@@ -112,12 +112,19 @@ Popup.prototype.loaded = function() {
       }
       var tr = $('<tr/>').attr('id', notification.id);
       var reason = Popup.getReasonSymbol(notification.reason);
-      reason.appendTo($('<td/>').appendTo(tr));
       let url = Popup.getUrl(notification.url);
+      var text = notification.title;
+      if (notification.reason == 'mention'
+          && 'mention' in notification) {
+        var mention = notification.mention;
+        url = mention.url;
+        text = '"' + mention.body + '" - @' + mention.username;
+      }
+      reason.appendTo($('<td/>').appendTo(tr));
       var a = $('<a/>')
             .attr('href', '#')
             .attr('title', url)
-            .text(notification.title);
+            .text(text);
       a.on('click', function() {
         chrome.tabs.create({url:url});
         return false;
@@ -159,6 +166,7 @@ Popup.prototype.loaded = function() {
   } else {
     table.appendTo(this.div_);
     table.css('height', '496px');
+    this.div_.scrollTop(-20);
   }
 };
 

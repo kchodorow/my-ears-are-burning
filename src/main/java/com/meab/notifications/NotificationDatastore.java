@@ -8,22 +8,21 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.utils.SystemProperty;
+import com.google.appengine.api.datastore.Text;
 import com.google.common.collect.ImmutableList;
 import com.meab.DatastoreConstants;
 import com.meab.ProdConstants;
 import com.meab.user.User;
 import com.meab.user.UserDatastore;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -40,16 +39,10 @@ public class NotificationDatastore {
   private final UserDatastore userDatastore = new UserDatastore();
 
   public void fetchNotifications(User user) throws IOException {
-    HttpClient httpClient = new DefaultHttpClient();
+    GitHubApi api = new GitHubApi(user.accessToken());
     String lastUpdated = DatastoreConstants.GITHUB_DATE_FORMAT.format(user.lastUpdated());
-    HttpGet getRequest = new HttpGet(
+    JSONArray notifications = api.getArray(
       ProdConstants.GITHUB_NOTIFICATIONS_URL + "?since=" + lastUpdated);
-    getRequest.addHeader("Authorization", "token " + user.accessToken());
-    HttpResponse response = httpClient.execute(getRequest);
-    HttpEntity entity = response.getEntity();
-    String body = EntityUtils.toString(entity, "UTF-8");
-    EntityUtils.consumeQuietly(entity);
-    JSONArray notifications = new JSONArray(body);
     store(notifications, user);
   }
 
@@ -57,15 +50,45 @@ public class NotificationDatastore {
     ImmutableList.Builder<Entity> builder = ImmutableList.builder();
     for (int i = 0; i < notifications.length(); ++i) {
       JSONObject jsonObject = notifications.getJSONObject(i);
-      if (STUPID_REASONS.contains(jsonObject.getString("reason"))) {
+      String reason = jsonObject.getString("reason");
+      if (STUPID_REASONS.contains(reason)) {
         continue;
       }
       Entity notification = Notification.createFromGitHubResponse(jsonObject).getEntity();
+      if (reason.equals("mention")) {
+        // Get the comment that mentions the user.
+        JSONObject mention = getMention(user, jsonObject);
+        if (mention != null) {
+          notification.setProperty(
+            DatastoreConstants.Notifications.MENTION, new Text(mention.toString()));
+        }
+      }
       notification.setProperty(DatastoreConstants.Notifications.USER_ID, user.id());
       builder.add(notification);
     }
     datastore.put(builder.build());
     userDatastore.setLastUpdated(user);
+  }
+
+  private JSONObject getMention(User user, JSONObject jsonObject) {
+    GitHubApi api = new GitHubApi(user.accessToken());
+    String url = jsonObject.getJSONObject("subject").getString("url") + "/comments";
+
+    JSONArray commentList;
+    try {
+      commentList = api.getArray(url);
+    } catch (IOException e) {
+      return null;
+    }
+
+    for (int i = commentList.length() - 1; i >= 0; --i) {
+      JSONObject comment = commentList.getJSONObject(i);
+      String body = comment.getString("body");
+      if (body.contains("@" + user.getUsername())) {
+        return comment;
+      }
+    }
+    return null;
   }
 
   public Iterable<Entity> getNotifications(long userId) {
@@ -83,5 +106,33 @@ public class NotificationDatastore {
 
   public void update(Entity entity) {
     datastore.put(entity);
+  }
+
+  private static class GitHubApi {
+    private final String accessToken;
+
+    private GitHubApi(String accessToken) {
+      this.accessToken = accessToken;
+    }
+
+    private JSONArray getArray(String urlString) throws IOException {
+      URL url = new URL(urlString);
+      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+      connection.setRequestProperty("Authorization", "token " + accessToken);
+      BufferedReader reader = new BufferedReader(
+        new InputStreamReader(connection.getInputStream()));
+      StringBuffer json = new StringBuffer();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        json.append(line);
+      }
+      reader.close();
+      try {
+        return new JSONArray(json.toString());
+      } catch (JSONException e) {
+        log.warning("Could not parse: " + json);
+        return new JSONArray();
+      }
+    }
   }
 }
