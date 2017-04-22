@@ -42,20 +42,6 @@ var receiveNotifications = function(response) {
   }
 };
 
-var createRepoHeader = function(repo) {
-  var url = Popup.HTML_PREFIX + repo;
-  var a = $('<a/>').attr('href', '#').text(url);
-  a.on('click', function() {
-    chrome.tabs.create({url:url});
-    return false;
-  });
-  var th = $('<th/>').attr('colspan', '3');
-  var tr = $('<tr/>');
-  a.appendTo(th);
-  th.appendTo(tr);
-  return tr;
-};
-
 var Popup = function(response) {
   this.response_ = response;
   this.div_ = $('#github-notifications');
@@ -97,7 +83,7 @@ Popup.prototype.track = function() {
 
 Popup.prototype.loaded = function() {
   var notificationMap = this.response_.notifications;
-  var table = $('<table/>').attr('class', 'table table-hover');
+  var list = $('<div/>').addClass('list-group');
   var total = 0;
   for (var repo in notificationMap) {
     var notifications = notificationMap[repo];
@@ -110,53 +96,50 @@ Popup.prototype.loaded = function() {
       if (notification.id in this.response_.muted) {
         continue;
       }
-      var tr = $('<tr/>').attr('id', notification.id);
-      var reason = Popup.getReasonSymbol(notification.reason);
+
+      var section = $('<a/>')
+            .addClass('list-group-item list-group-item-action flex-column align-items-start')
+            .attr('id', notification.id)
+            .attr('href', '#');
+      var controls = $('<div/>')
+            .addClass('d-flex w-100 justify-content-between');
+      controls.appendTo(section);
+
       let url = Popup.getUrl(notification.url);
-      var text = notification.title;
       if (notification.reason == 'mention'
           && 'mention' in notification) {
         var mention = notification.mention;
         url = mention.url;
-        text = '"' + mention.body + '" - @' + mention.username;
+        var text = '"' + mention.body + '" - @' + mention.username;
+        $('<p/>').addClass('mb-1').text(text).appendTo(section);
       }
-      reason.appendTo($('<td/>').appendTo(tr));
-      var a = $('<a/>')
-            .attr('href', '#')
-            .attr('title', url)
-            .text(text);
-      a.on('click', function() {
+      $('<small/>').addClass('text-muted').text(notification.title).appendTo(section);
+
+      section.on('click', function() {
         chrome.tabs.create({url:url});
         return false;
       });
-      a.appendTo($('<td/>').appendTo(tr));
       var mute = $('<button/>').attr('type', 'button')
             .addClass('btn btn-outline-primary btn-sm')
-            .text('Done')
-            .appendTo($('<td/>').appendTo(tr));
+            .text('Done');
       mute.on('click', function() {
-        var tr = $(this).parent().parent();
-        var tbody = tr.parent();
+        var a = $(this).parent().parent().parent();
+        var list = a.parent();
         chrome.runtime.sendMessage(
-          {post:'mute', id:tr.attr('id')}, receiveNotifications);
-        tr.remove();
-        if (tbody.is(':empty')) {
-          var thead = tbody.prev();
-          thead.remove();
-          tbody.remove();
-        }
+          {post:'mute', id:a.attr('id')}, receiveNotifications);
+        a.remove();
       });
-      trs.push(tr);
+      var reason = Popup.getReasonSymbol(notification.reason);
+      $('<h5/>').addClass('mb-1').html(reason).appendTo(controls);
+      $('<small/>').html(mute).appendTo(controls);
+      trs.push(section);
     }
 
     // Only display this section if there's at least one notification.
     if (trs.length > 0) {
-      createRepoHeader(repo).appendTo($('<thead/>').appendTo(table));
-      var tbody = $('<tbody/>');
       for (i = 0; i < trs.length; ++i) {
-        trs[i].appendTo(tbody);
+        trs[i].appendTo(list);
       }
-      tbody.appendTo(table);
     }
     total += trs.length;
   }
@@ -164,9 +147,8 @@ Popup.prototype.loaded = function() {
   if (total == 0) {
     this.div_.text("All caught up!");
   } else {
-    table.appendTo(this.div_);
-    table.css('height', '496px');
-    this.div_.scrollTop(-20);
+    list.appendTo(this.div_);
+    this.div_.addClass('container');
   }
 };
 
