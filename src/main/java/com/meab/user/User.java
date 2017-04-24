@@ -79,7 +79,7 @@ public class User {
     entity.setProperty(DatastoreConstants.User.LAST_UPDATED, new Date(0));
     entity.setProperty(DatastoreConstants.User.TRACKED_REPOSITORIES, Lists.newArrayList());
     entity.setProperty(DatastoreConstants.User.USER_INFO, new Text(userInfo.toString()));
-    entity.setProperty(DatastoreConstants.User.MAX_REPOS, 1);
+    entity.setProperty(DatastoreConstants.User.MAX_REPOS, Integer.MAX_VALUE);
     entity.setProperty(
       DatastoreConstants.User.SUBSCRIPTION_INFO, new Text(new JSONObject().toString()));
     return new User(entity);

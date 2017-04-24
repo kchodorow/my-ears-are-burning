@@ -1,6 +1,5 @@
 package com.meab.api;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.appengine.api.datastore.Entity;
 import com.meab.DatastoreConstants;

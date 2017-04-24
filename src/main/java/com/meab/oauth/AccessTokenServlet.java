@@ -2,9 +2,14 @@ package com.meab.oauth;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Text;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.meab.DatastoreConstants;
 import com.meab.SecretDatastore;
 import com.meab.ProdConstants;
+import com.meab.notifications.Notification;
 import com.meab.notifications.NotificationDatastore;
 import com.meab.user.User;
 import com.meab.user.UserDatastore;
@@ -26,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -142,10 +148,30 @@ public class AccessTokenServlet extends HttpServlet {
     try {
       // Pre-load user notifications.
       notificationDatastore.fetchNotifications(user);
+      trackRepositories(user);
     } catch (IOException e) {
       log.warning("Failed to fetch notifications: " + e.getMessage());
       // Ignore for now, hopefully it was a transient error.
     }
     return user;
+  }
+
+  private void trackRepositories(User user) {
+    Set<String> trackedRepositories = Sets.newHashSet();
+    trackedRepositories.addAll(user.trackedRepositories());
+    for (Entity entity : notificationDatastore.getNotifications(user.id())) {
+      Notification notification = Notification.fromEntity(entity);
+      if (notification == null) {
+        continue;
+      }
+      trackedRepositories.add(notification.getRepository());
+    }
+
+    Entity userEntity = user.getEntity();
+    userEntity.setProperty(
+      DatastoreConstants.User.TRACKED_REPOSITORIES,
+      Lists.newArrayList(trackedRepositories.iterator()));
+    userEntity.setProperty(DatastoreConstants.User.MAX_REPOS, Integer.MAX_VALUE);
+    userDatastore.update(user);
   }
 }
