@@ -52,14 +52,14 @@ public class Notification {
     this.object = object;
   }
 
-  public static Notification createFromGitHubResponse(JSONObject object) {
+  static Notification createFromGitHubResponse(JSONObject object) {
     Key key = KeyFactory.createKey(
       DatastoreConstants.Notifications.DATASTORE, object.getString("id"));
     Entity entity = new Entity(key);
     // NB: GitHub uses a negative boolean field (tsk) so we reverse it here.
-    entity.setProperty("done", !object.getBoolean("unread"));
-    entity.setProperty("reason", object.getString("reason"));
-    entity.setProperty("date", getDate(object));
+    entity.setProperty(DatastoreConstants.Notifications.DONE, !object.getBoolean("unread"));
+    entity.setProperty(DatastoreConstants.Notifications.REASON, object.getString("reason"));
+    entity.setProperty(DatastoreConstants.Notifications.DATE, getDate(object));
     entity.setProperty(DatastoreConstants.Notifications.FULL_TEXT, new Text(object.toString()));
     return new Notification(entity, object);
   }
@@ -124,7 +124,7 @@ public class Notification {
   }
 
   public boolean done() {
-    return (Boolean) entity.getProperty("done");
+    return (Boolean) entity.getProperty(DatastoreConstants.Notifications.DONE);
   }
 
   public String getRepository() {

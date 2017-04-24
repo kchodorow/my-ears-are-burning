@@ -57,7 +57,7 @@ public class NotificationDatastore {
       Entity notification = Notification.createFromGitHubResponse(jsonObject).getEntity();
       if (reason.equals("mention")) {
         // Get the comment that mentions the user.
-        JSONObject mention = getMention(user, jsonObject);
+        JSONObject mention = getMention(user, jsonObject, notification);
         if (mention != null) {
           notification.setProperty(
             DatastoreConstants.Notifications.MENTION, new Text(mention.toString()));
@@ -70,7 +70,7 @@ public class NotificationDatastore {
     userDatastore.setLastUpdated(user);
   }
 
-  private JSONObject getMention(User user, JSONObject jsonObject) {
+  private JSONObject getMention(User user, JSONObject jsonObject, Entity entity) {
     GitHubApi api = new GitHubApi(user.accessToken());
     String url = jsonObject.getJSONObject("subject").getString("url") + "/comments";
 
@@ -81,13 +81,23 @@ public class NotificationDatastore {
       return null;
     }
 
+    boolean userResponded = false;
     for (int i = commentList.length() - 1; i >= 0; --i) {
       JSONObject comment = commentList.getJSONObject(i);
       String body = comment.getString("body");
       if (body.contains("@" + user.getUsername())) {
+        if (userResponded) {
+          entity.setProperty(DatastoreConstants.Notifications.DONE, true);
+        }
         return comment;
       }
+      // GitHub still returns an "unread" notification, even if the user's responded to it!
+      if (user.getUsername().equals(comment.getJSONObject("user").getString("login"))) {
+        userResponded = true;
+      }
     }
+    log.warning(url + " theoretically mentioned " + user.getUsername()
+      + " but could not find mention");
     return null;
   }
 
@@ -121,7 +131,7 @@ public class NotificationDatastore {
       connection.setRequestProperty("Authorization", "token " + accessToken);
       BufferedReader reader = new BufferedReader(
         new InputStreamReader(connection.getInputStream()));
-      StringBuffer json = new StringBuffer();
+      StringBuilder json = new StringBuilder();
       String line;
       while ((line = reader.readLine()) != null) {
         json.append(line);
