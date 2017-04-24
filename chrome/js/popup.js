@@ -185,10 +185,10 @@ Popup.getTitle = function(reason) {
   case "comment":
     return 'There was a new comment';
   case "assign":
-    return 'You were assigned';
+    return 'Assigned to you';
   case "review_requested":
     // TODO: add username.
-    return 'You have been summoned to do a code review';
+    return 'You have been summoned to review code';
   }
   return 'Reason not recognized (' + reason + '), this is probably a bug';
 
