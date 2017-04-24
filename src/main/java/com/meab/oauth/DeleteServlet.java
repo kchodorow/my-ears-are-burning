@@ -1,8 +1,7 @@
 package com.meab.oauth;
 
-import com.google.appengine.api.datastore.Entity;
 import com.google.common.collect.ImmutableMap;
-import com.meab.DatastoreConstants;
+import com.meab.notifications.NotificationDatastore;
 import com.meab.servlet.MeabServlet;
 import com.meab.servlet.MeabServletException;
 import com.meab.user.User;
@@ -20,6 +19,8 @@ import java.util.logging.Logger;
 
 public class DeleteServlet extends MeabServlet {
   private static final Logger log = Logger.getLogger(DeleteServlet.class.getName());
+
+  NotificationDatastore notificationDatastore = new NotificationDatastore();
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -41,5 +42,6 @@ public class DeleteServlet extends MeabServlet {
       log.warning(e.getMessage());
     }
     userDatastore.delete(user);
+    notificationDatastore.delete(user);
   }
 }

@@ -106,13 +106,19 @@ Popup.prototype.loaded = function() {
       controls.appendTo(section);
 
       let url = Popup.getUrl(notification.url);
+      let title = Popup.getTitle(notification.reason);
       if (notification.reason == 'mention'
           && 'mention' in notification) {
         var mention = notification.mention;
         url = mention.url;
         var text = '"' + mention.body + '" - @' + mention.username;
         $('<p/>').addClass('mb-1').text(text).appendTo(section);
+        if ('num_following' in mention) {
+          title += ' - ' + mention.num_following + ' comments since';
+        }
       }
+
+      section.attr('title', title);
       $('<small/>').addClass('text-muted').text(notification.title).appendTo(section);
 
       section.on('click', function() {
@@ -167,6 +173,23 @@ Popup.getReasonSymbol = function(reason) {
     return div.attr('title', 'Code review').html('&#128591;'); // Prayer.
   }
   return div.html("?");
+};
+
+Popup.getTitle = function(reason) {
+  switch (reason) {
+  case "mention":
+    return 'You were mentioned';
+  case "state_change":
+    return 'TODO';
+  case "comment":
+    return 'There was a new comment';
+  case "assign":
+    return 'You were assigned';
+  case "review_requested":
+    return 'TODO';
+  }
+  return 'Reason not recognized (' + reason + '), this is probably a bug';
+
 };
 
 // There's probably a better way to get these, but so far they seem

@@ -85,7 +85,10 @@ public class Notification {
   public JSONObject getJson() throws InvalidJsonException {
     JSONObject response = new JSONObject();
     response.put("id", entity.getKey().getName());
-    response.put("reason", entity.getProperty("reason"));
+    response.put("reason", entity.getProperty(DatastoreConstants.Notifications.REASON));
+    response.put(
+      "date",
+      getHumanReadableDate((Date) entity.getProperty(DatastoreConstants.Notifications.DATE)));
     response.put("title", object.getJSONObject("subject").getString("title"));
     response.put("url", object.getJSONObject("subject").getString("url"));
     response.put("repository", object.getJSONObject("repository").getString("full_name"));
@@ -108,9 +111,12 @@ public class Notification {
     }
     JSONObject mention = new JSONObject();
     mention.put("url", rawMention.getString("html_url"));
-    mention.put("date", rawMention.getString("updated_at"));
+    mention.put("date", getHumanReadableDate(Notification.getDate(rawMention)));
     mention.put("username", rawMention.getJSONObject("user").getString("login"));
     mention.put("body", getMentionBodySummary(rawMention.getString("body")));
+    if (rawMention.has("num_following")) {
+      mention.put("num_following", rawMention.getInt("num_following"));
+    }
     response.put("mention", mention);
   }
 
@@ -141,6 +147,23 @@ public class Notification {
       date = new Date();
     }
     return date;
+  }
+
+  // TODO: make this less terrible. Maybe use joda, since AppEngine can't use java.time.
+  private String getHumanReadableDate(Date event) {
+    long seconds = event.getSeconds() - (new Date(0).getSeconds());
+    if (seconds < 60) {
+      return seconds + " seconds";
+    }
+    long minutes = seconds / 60;
+    if (minutes < 60) {
+      return minutes + " minutes";
+    }
+    long hours = minutes / 60;
+    if (hours < 24) {
+      return hours + " hours";
+    }
+    return (hours / 24) + " days";
   }
 
   public static class InvalidJsonException extends Exception {

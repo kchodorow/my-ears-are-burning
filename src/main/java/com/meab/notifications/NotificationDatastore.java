@@ -78,6 +78,7 @@ public class NotificationDatastore {
     try {
       commentList = api.getArray(url);
     } catch (IOException e) {
+      log.warning("Couldn't get comments from " + url + ": " + e.getMessage());
       return null;
     }
 
@@ -88,6 +89,10 @@ public class NotificationDatastore {
       if (body.contains("@" + user.getUsername())) {
         if (userResponded) {
           entity.setProperty(DatastoreConstants.Notifications.DONE, true);
+        }
+        int numExtraComments = commentList.length() - i - 1;
+        if (numExtraComments > 0) {
+          comment.put("num_following", numExtraComments);
         }
         return comment;
       }
@@ -116,6 +121,12 @@ public class NotificationDatastore {
 
   public void update(Entity entity) {
     datastore.put(entity);
+  }
+
+  public void delete(User user) {
+    for (Entity notification : getNotifications(user.id())) {
+      datastore.delete(notification.getKey());
+    }
   }
 
   private static class GitHubApi {
