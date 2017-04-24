@@ -180,13 +180,15 @@ Popup.getTitle = function(reason) {
   case "mention":
     return 'You were mentioned';
   case "state_change":
-    return 'TODO';
+    // TODO: add whether it was opened or closed.
+    return 'The state was changed';
   case "comment":
     return 'There was a new comment';
   case "assign":
     return 'You were assigned';
   case "review_requested":
-    return 'TODO';
+    // TODO: add username.
+    return 'You have been summoned to do a code review';
   }
   return 'Reason not recognized (' + reason + '), this is probably a bug';
 
@@ -195,5 +197,6 @@ Popup.getTitle = function(reason) {
 // There's probably a better way to get these, but so far they seem
 // pretty consistently formatted.
 Popup.getUrl = function(apiUrl) {
-  return Popup.HTML_PREFIX + apiUrl.substring(Popup.API_PREFIX.length);
+  return Popup.HTML_PREFIX + apiUrl.substring(Popup.API_PREFIX.length)
+    .replace('/pulls/', '/pull/');
 };
