@@ -13,6 +13,7 @@
         <nav>
           <ul class="nav nav-pills pull-right">
             <li role="presentation" <#if page == "index.ftlh">class="active"</#if>><a href="/">Home</a></li>
+            <li role="presentation"><a href="https://github.com/kchodorow/my-ears-are-burning/issues">File a bug</a></li>
             <li role="presentation"><a id="login" href="/login">Login</a></li>
           </ul>
         </nav>
@@ -25,8 +26,8 @@
       <#include "${page}">
 
       <footer class="footer">
+        <p><a href="https://github.com/kchodorow/my-ears-are-burning/issues">Contact</a></p>
         <p>&copy; 2017 Kristina Chodorow.</p>
-        <p><a href="/privacy-policy">Privacy policy</a></p>
       </footer>
 
       <script>
