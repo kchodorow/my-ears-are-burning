@@ -9,5 +9,6 @@ java_test(
         "@com_google_appengine_java//:jars",
         "@json//jar",
         "@org_junit//jar",
+        "@org_mockito//jar",
     ],
 )

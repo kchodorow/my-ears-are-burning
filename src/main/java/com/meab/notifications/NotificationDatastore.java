@@ -15,14 +15,9 @@ import com.meab.ProdConstants;
 import com.meab.user.User;
 import com.meab.user.UserDatastore;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -38,8 +33,12 @@ public class NotificationDatastore {
   private final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
   private final UserDatastore userDatastore = new UserDatastore();
 
+  protected GitHubApi getApi(User user) {
+    return new GitHubApi(user.accessToken());
+  }
+
   public void fetchNotifications(User user) throws IOException {
-    GitHubApi api = new GitHubApi(user.accessToken());
+    GitHubApi api = getApi(user);
     String lastUpdated = DatastoreConstants.GITHUB_DATE_FORMAT.format(user.lastUpdated());
     JSONArray notifications = api.getArray(
       ProdConstants.GITHUB_NOTIFICATIONS_URL + "?since=" + lastUpdated);
@@ -72,13 +71,14 @@ public class NotificationDatastore {
 
   JSONObject getMention(User user, JSONObject jsonObject, Entity entity) {
     String mention = "@" + user.getUsername();
-    String body = jsonObject.getString("body");
-    if (body.contains(mention)) {
-      return jsonObject;
+    String url = jsonObject.getJSONObject("subject").getString("url");
+    if (url.contains("/pulls/")) {
+      // This is a pull request. The comment thread is the code review. We probably want the issue
+      // thread.
+      url = url.replace("/pulls/", "/issues/");
     }
-
-    GitHubApi api = new GitHubApi(user.accessToken());
-    String url = jsonObject.getJSONObject("subject").getString("url") + "/comments";
+    GitHubApi api = getApi(user);
+    url = url + "/comments";
 
     JSONArray commentList;
     try {
@@ -91,7 +91,7 @@ public class NotificationDatastore {
     boolean userResponded = false;
     for (int i = commentList.length() - 1; i >= 0; --i) {
       JSONObject comment = commentList.getJSONObject(i);
-      body = comment.getString("body");
+      String body = comment.getString("body");
       if (body.contains(mention)) {
         if (userResponded) {
           entity.setProperty(DatastoreConstants.Notifications.DONE, true);
@@ -107,6 +107,28 @@ public class NotificationDatastore {
         userResponded = true;
       }
     }
+
+    // Maybe it was in the original message.
+    url = jsonObject.getJSONObject("subject").getString("url");
+    JSONObject issue;
+    try {
+      issue = api.getObject(url);
+    } catch (IOException e) {
+      log.warning("Couldn't get comments from " + url + ": " + e.getMessage());
+      return null;
+    }
+    String body = issue.getString("body");
+    if (body.contains(mention)) {
+      if (userResponded) {
+        entity.setProperty(DatastoreConstants.Notifications.DONE, true);
+      }
+      int comments = issue.getInt("comments");
+      if (comments > 0) {
+        issue.put("num_following", comments);
+      }
+      return issue;
+    }
+
     log.warning(url + " theoretically mentioned " + user.getUsername()
       + " but could not find mention");
     return null;
@@ -135,31 +157,4 @@ public class NotificationDatastore {
     }
   }
 
-  private static class GitHubApi {
-    private final String accessToken;
-
-    private GitHubApi(String accessToken) {
-      this.accessToken = accessToken;
-    }
-
-    private JSONArray getArray(String urlString) throws IOException {
-      URL url = new URL(urlString);
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-      connection.setRequestProperty("Authorization", "token " + accessToken);
-      BufferedReader reader = new BufferedReader(
-        new InputStreamReader(connection.getInputStream()));
-      StringBuilder json = new StringBuilder();
-      String line;
-      while ((line = reader.readLine()) != null) {
-        json.append(line);
-      }
-      reader.close();
-      try {
-        return new JSONArray(json.toString());
-      } catch (JSONException e) {
-        log.warning("Could not parse: " + json);
-        return new JSONArray();
-      }
-    }
-  }
 }
