@@ -2,6 +2,7 @@ package com.meab.ui;
 
 import com.google.common.collect.ImmutableMap;
 import com.meab.StartupRegistrar;
+import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Reader;
 
 public class UiServlet extends HttpServlet {
   @Override
@@ -37,5 +39,4 @@ public class UiServlet extends HttpServlet {
       e.printStackTrace();
     }
   }
-
 }

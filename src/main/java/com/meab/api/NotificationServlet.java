@@ -45,14 +45,11 @@ public class NotificationServlet extends ApiServlet {
 
     for (Entity entity : notificationDatastore.getNotifications(user.id())) {
       Notification notification = Notification.fromEntity(entity);
-      if (notification == null || notification.done()) {
+      if (!shouldAdd(notification, user)) {
         continue;
       }
 
       String repository = notification.getRepository();
-      if (!user.trackedRepositories().contains(repository)) {
-        continue;
-      }
       if (!notificationsByRepository.has(repository)) {
         notificationsByRepository.put(repository, new JSONArray());
       }
@@ -62,6 +59,12 @@ public class NotificationServlet extends ApiServlet {
         // Skip this element.
       }
     }
+  }
+
+  private boolean shouldAdd(Notification notification, User user) {
+    return !(notification == null || notification.done())
+      && user.trackedRepositories().contains(notification.getRepository())
+      && !notification.isStupidReason();
   }
 
   @Override

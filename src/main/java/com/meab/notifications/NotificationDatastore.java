@@ -32,8 +32,8 @@ import java.util.logging.Logger;
 public class NotificationDatastore {
   private static final Logger log = Logger.getLogger(NotificationDatastore.class.getName());
 
-  private static final List<String> STUPID_REASONS = ImmutableList.<String>builder()
-    .add("invitation").add("author").add("state_change").build();
+  static final List<String> STUPID_REASONS = ImmutableList.<String>builder()
+    .add("invitation").add("author").add("state_change").add("subscribed").build();
 
   private final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
   private final UserDatastore userDatastore = new UserDatastore();
@@ -70,7 +70,13 @@ public class NotificationDatastore {
     userDatastore.setLastUpdated(user);
   }
 
-  private JSONObject getMention(User user, JSONObject jsonObject, Entity entity) {
+  JSONObject getMention(User user, JSONObject jsonObject, Entity entity) {
+    String mention = "@" + user.getUsername();
+    String body = jsonObject.getString("body");
+    if (body.contains(mention)) {
+      return jsonObject;
+    }
+
     GitHubApi api = new GitHubApi(user.accessToken());
     String url = jsonObject.getJSONObject("subject").getString("url") + "/comments";
 
@@ -85,8 +91,8 @@ public class NotificationDatastore {
     boolean userResponded = false;
     for (int i = commentList.length() - 1; i >= 0; --i) {
       JSONObject comment = commentList.getJSONObject(i);
-      String body = comment.getString("body");
-      if (body.contains("@" + user.getUsername())) {
+      body = comment.getString("body");
+      if (body.contains(mention)) {
         if (userResponded) {
           entity.setProperty(DatastoreConstants.Notifications.DONE, true);
         }

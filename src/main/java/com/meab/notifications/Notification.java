@@ -149,6 +149,10 @@ public class Notification {
     return date;
   }
 
+  public boolean isStupidReason() {
+    return NotificationDatastore.STUPID_REASONS.contains(object.getString("reason"));
+  }
+
   // TODO: make this less terrible. Maybe use joda, since AppEngine can't use java.time.
   private String getHumanReadableDate(Date event) {
     long seconds = event.getSeconds() - (new Date(0).getSeconds());
