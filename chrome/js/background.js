@@ -127,7 +127,7 @@ BackgroundTask.noStatus = function() {
 
 BackgroundTask.loaded = function(num) {
   if (num > 0) {
-    chrome.browserAction.setTitle({title : num + ' unread notifications.'});
+    chrome.browserAction.setTitle({title : num + ' new notifications.'});
     chrome.browserAction.setIcon({path: 'assets/unread.png'});
   } else {
     chrome.browserAction.setTitle({title : 'All caught up!'});
