@@ -64,12 +64,18 @@ Popup.prototype.requesting = function() {
 };
 
 Popup.prototype.login = function() {
-  var a = $('<a/>').attr('href', '#').text('Please login to get started.');
+  var a = $('<a/>').attr('href', '#').html(
+    '<p>Please login to get started.</p>');
   a.on('click', function() {
     chrome.tabs.create({url:Extension.URL + 'login'});
     return false;
   });
   a.appendTo(this.div_);
+  $('<p>').html(
+    '<i>The first time you log in, GitHub will ask you to grant'
+      + ' https://meab.kchodorow.com (this extension\'s backend server)'
+      + ' permission to fetch your GitHub notification stream.</i>')
+    .appendTo(this.div_);
 };
 
 Popup.prototype.track = function() {
