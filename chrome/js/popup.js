@@ -88,6 +88,7 @@ Popup.prototype.track = function() {
 };
 
 Popup.prototype.loaded = function() {
+  const MAX_WORD_LEN = 20;
   var notificationMap = this.response_.notifications;
   var list = $('<div/>').addClass('list-group');
   var total = 0;
@@ -117,7 +118,13 @@ Popup.prototype.loaded = function() {
           && 'mention' in notification) {
         var mention = notification.mention;
         url = mention.url;
-        var text = '"' + mention.body + '" - @' + mention.username;
+        var words = mention.body.split(' ');
+        for (let w = 0; w < words.length; ++w) {
+          if (words[w].length > MAX_WORD_LEN) {
+            words[w] = words[w].substring(0, MAX_WORD_LEN - 3) + '...';
+          }
+        }
+        var text = '"' + words.join(' ') + '" - @' + mention.username;
         $('<p/>').addClass('mb-1').text(text).appendTo(section);
         if ('num_following' in mention) {
           title += ' - ' + mention.num_following + ' comments since';
