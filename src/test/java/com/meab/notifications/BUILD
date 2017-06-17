@@ -7,6 +7,8 @@ java_test(
         "//src/main/java/com/meab/user",
         "@com_google_appengine_java//:api",
         "@com_google_appengine_java//:jars",
+        "@com_google_truth//jar",
+        "@guava//jar",
         "@json//jar",
         "@org_junit//jar",
         "@org_mockito//jar",

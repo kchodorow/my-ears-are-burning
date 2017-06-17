@@ -1,10 +1,16 @@
 package com.meab.notifications;
 
+import com.google.appengine.api.datastore.DatastoreFailureException;
+import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import com.google.common.collect.ImmutableList;
 import com.meab.DatastoreConstants;
 import com.meab.user.User;
 import org.json.JSONArray;
@@ -15,7 +21,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -68,5 +78,35 @@ public class NotificationDatastoreTest {
     Entity entity = new Entity(KeyFactory.createKey("x", "y"));
     JSONObject actualObject = datastore.getMention(fakeUser, fakeNotification, entity);
     assertSame(jsonObject, actualObject);
+  }
+
+  @Test
+  public void testRepeatedDbError() throws Exception {
+    DatastoreService mockDatastore = mock(DatastoreService.class);
+    PreparedQuery mockPreparedQuery = mock(PreparedQuery.class);
+
+    when(mockDatastore.prepare(any(Query.class))).thenReturn(mockPreparedQuery);
+    when(mockPreparedQuery.asList(any(FetchOptions.class)))
+      .thenThrow(new DatastoreFailureException("oops1"))
+      .thenThrow(new DatastoreFailureException("oops2"));
+
+    NotificationDatastore notificationDatastore = new NotificationDatastore(mockDatastore);
+    List<Entity> notifications = notificationDatastore.getNotifications(123);
+    assertThat(notifications).isEmpty();
+  }
+
+  @Test
+  public void testSingleDbError() throws Exception {
+    DatastoreService mockDatastore = mock(DatastoreService.class);
+    PreparedQuery mockPreparedQuery = mock(PreparedQuery.class);
+
+    when(mockDatastore.prepare(any(Query.class))).thenReturn(mockPreparedQuery);
+    when(mockPreparedQuery.asList(any(FetchOptions.class)))
+      .thenThrow(new DatastoreFailureException("oops"))
+      .thenReturn((List) ImmutableList.of(fakeNotification));
+
+    NotificationDatastore notificationDatastore = new NotificationDatastore(mockDatastore);
+    List<Entity> notifications = notificationDatastore.getNotifications(123);
+    assertThat(notifications).hasSize(1);
   }
 }

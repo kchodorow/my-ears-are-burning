@@ -1,9 +1,11 @@
 package com.meab.notifications;
 
+import com.google.appengine.api.datastore.DatastoreFailureException;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
@@ -30,8 +32,16 @@ public class NotificationDatastore {
   static final List<String> STUPID_REASONS = ImmutableList.<String>builder()
     .add("invitation").add("author").add("state_change").add("subscribed").build();
 
-  private final DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+  private final DatastoreService datastore;
   private final UserDatastore userDatastore = new UserDatastore();
+
+  protected NotificationDatastore(DatastoreService datastore) {
+    this.datastore = datastore;
+  }
+
+  public NotificationDatastore() {
+    this(DatastoreServiceFactory.getDatastoreService());
+  }
 
   protected GitHubApi getApi(User user) {
     return new GitHubApi(user.accessToken());
@@ -134,12 +144,21 @@ public class NotificationDatastore {
     return null;
   }
 
-  public Iterable<Entity> getNotifications(long userId) {
-    Query.FilterPredicate predicate = new Query.FilterPredicate(
-      DatastoreConstants.Notifications.USER_ID, Query.FilterOperator.EQUAL, userId);
-    Query query = new Query(DatastoreConstants.Notifications.DATASTORE).setFilter(predicate);
-    PreparedQuery preparedQuery = datastore.prepare(query);
-    return preparedQuery.asIterable();
+  public List<Entity> getNotifications(long userId) {
+    int TRIES = 2;
+    for (int attempt = 0; attempt < TRIES; ++attempt) {
+      Query.FilterPredicate predicate = new Query.FilterPredicate(
+        DatastoreConstants.Notifications.USER_ID, Query.FilterOperator.EQUAL, userId);
+      Query query = new Query(DatastoreConstants.Notifications.DATASTORE).setFilter(predicate);
+      PreparedQuery preparedQuery = datastore.prepare(query);
+      try {
+        return preparedQuery.asList(FetchOptions.Builder.withDefaults());
+      } catch (DatastoreFailureException e) {
+        log.warning("Attempt #" + (attempt + 1) + ": unable to fetch notifications ("
+          + e.getMessage() + ")");
+      }
+    }
+    return ImmutableList.of();
   }
 
   public Entity getNotification(String notificationId) throws EntityNotFoundException {
