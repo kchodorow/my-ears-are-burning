@@ -3,7 +3,7 @@
 
     "name": "My ears are burning",
     "description": "This notifies you when someone has mentioned you or assigned you an issue on GitHub",
-    "version": "0.1.7",
+    "version": "0.1.8",
 
     "browser_action": {
         "default_title": "Loading notifications...",
